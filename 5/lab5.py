@@ -6,13 +6,12 @@ class Student :
       return self.__stu_name
   def get_id(self) :
       return self.__stu_id
-  
 class Subject :
   def __init__ (self, sub_id, sub_name, credit) :
       self.__sub_id = sub_id
       self.__sub_name = sub_name    
       self.__credit = credit
-      self.__tc = None
+      self.__tc = ''
 
   def get_id(self) :
       return self.__sub_id
@@ -36,7 +35,7 @@ class Teacher :
 class Enrollment :
   def __init__(self,subject,student):
       self.__subject = subject
-      self.__student = student  #ในวิชานี้มีใครเรียนบ้าง
+      self.__student = student 
       self.__grade = ''
   def get_subject(self) : 
       return self.__subject
@@ -45,7 +44,7 @@ class Enrollment :
   def get_grade(self) : 
       return self.__grade
   def set_grade(self , new_grade) : 
-      if isinstance(new_grade, str) and len(new_grade)==1 and new_grade>='A' and new_grade <='D':
+      if isinstance(new_grade, str) :
           self.__grade = new_grade
 
 student_list = []
@@ -134,9 +133,10 @@ def assign_grade(student, subject, grade):
 
 # TODO 9 : function สำหรับคืน instance ของอาจารย์ที่สอนในวิชา
 def get_teacher_teach(subject_search):
-  if subject_search in subject_list :
-    return subject_search.get_teacher()
-  return 'Error'
+  for i in enrollment_list : 
+      subject = i.get_subject()
+      if subject == subject_search:  
+          return subject.get_teacher()
 
 # TODO 10 : function สำหรับค้นหาจำนวนของนักศึกษาที่ลงทะเบียนในรายวิชา โดยรับ instance ของ subject
 def get_no_of_student_enrolled(subject):
