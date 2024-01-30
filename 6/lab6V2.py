@@ -16,7 +16,7 @@ class User :
 
 
 class Account :
-  __max_deposit = 40000
+  __max_withdraw = 40000
   def __init__(self, user, account_id, balance = 0, card = None) :
     self.__user = user
     self.__account_id = account_id
@@ -40,8 +40,8 @@ class Account :
   def transaction_list(self) :
     return self.__transaction_list
   @property
-  def max_deposit(self):
-    return self.__max_deposit
+  def max_withdraw(self):
+    return self.__max_withdraw
 
   def add_card(self, card) :
     self.__card = card
@@ -66,7 +66,7 @@ class Account :
         
       elif transaction.type == 'W' :
         total = self.check_deposit_per_day( transaction.date) # total withdraw or tranfer in this date
-        if total + transaction.amount <= self.max_deposit \
+        if total + transaction.amount <= self.max_withdraw \
         and self.balance >= transaction.amount :
           self.balance -= transaction.amount
         else :
@@ -77,7 +77,7 @@ class Account :
           self.balance += transaction.amount
         else :
           total = self.check_deposit_per_day( transaction.date) # total withdraw or tranfer in this date
-          if total + transaction.amount <= self.max_deposit and self.balance >= transaction.amount :
+          if total + transaction.amount <= self.max_withdraw and self.balance >= transaction.amount :
             target_transaction = Transaction(transaction.type, transaction.amount, transaction.date, transaction.atm_id, transaction.target_account)
             transaction.target_account.cal_balance(target_transaction)
             
