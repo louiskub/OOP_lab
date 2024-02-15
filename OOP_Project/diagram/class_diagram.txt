@@ -1,0 +1,130 @@
+Waterpark
+	-name
+	-ticket_type[]
+	-dailystock_list[]
+	-customer_list[]
+	-coupon_list[]
+	-payment_list[]
+	-reward_list[]
+
+	+show_services() 
+	+show_services_from_date( date ) 
+	+show_selection() 
+	+search_coupon_from_code() 
+	+cal_price() 
+	+create_member()
+	+create_customer()
+	+create_booking( choice/coupon ) 
+	+show_confirm_booking()
+	+show_payment_options() 
+	+show_paid() 
+	+send_finished_booking()  /add reward
+	+update_status() 
+	+cancel_booking()  
+	+search_booking_from_user() 
+
+DailyStock
+	-date
+	-reserve_ticket[]
+	-locker_list[]
+	-cabana_list[]
+	-all_towel
+	-reserve_towel
+	+show_all()
+	+show_available()
+	+show_locker()
+	+show_cabana()
+	+show_towel()
+	+update_status() 
+
+ShowCabana
+	-id
+	-size
+	-zone
+	-price
+	-is_reserve
+ShowLocker
+	-id
+	-size
+	-price
+	-is_reserve
+
+Ticket
+	-type
+	-price
+	-feature
+	-is_thai
+
+Customer
+	-name
+	-email
+	-phone_number
+	-booking = []
+Member
+	-password
+	-birthday
+	-nationality
+	-point
+	-point_history[]
+	+update_point()
+PointsHistory
+	-datetime
+	-point_after
+	-amount +/-
+	-reward = none
+
+Coupon
+	-id
+	-feature
+	-expire_date
+Reward
+	-require_point
+	-feature /coupon
+
+Booking
+	-customer
+	-booking_id
+	-visit_date
+	-oder_datetime
+	-selected_ticket[]
+	-selected_locker[]
+	-selected_cabana[]
+	-selected_towel 
+	-status /payment
+	+update_status() 
+
+Payment
+	-amount
+	-payment_id
+	-status
+	-create_date
+	+gen_payment()
+	+paid()
+	+update_status() 
+
+Promptpay
+	-qrcode
+	+gen_qr
+Payment2
+
+Promptpay --*> Payment
+Payment2 --*> Payment
+Member --*> Customer
+Member --> PointsHistory  
+PointsHistory --> Reward
+
+ShowCabana --<> DailyStock
+ShowLocker --<> DailyStock
+DailyStock --<> Waterpark
+Coupon --<> Waterpark
+Ticket --<> Waterpark
+Customer --<> Waterpark
+Payment --<> Waterpark
+Reward --<> Waterpark
+
+Customer -Create- Booking
+Booking --> ShowCabana 
+Booking --> ShowLocker
+Booking --> Ticket
+Booking -- Payment
+Coupon --> Payment
