@@ -1,13 +1,15 @@
 Waterpark
 	-name
-	-ticket_type[]
+	-stock
 	-dailystock_list[]
 	-customer_list[]
+	-member_list[]
 	-coupon_list[]
 	-payment_list[]
+	-ticket_type[]
 	-reward_list[]
 
-	+show_services() 
+	+show_services() : list
 	+show_services_from_date( date ) 
 	+show_selection() 
 	+search_coupon_from_code() 
@@ -20,22 +22,36 @@ Waterpark
 	+show_paid() 
 	+send_finished_booking()  /add reward
 	+update_status() 
-	+cancel_booking()  
+	+cancel_booking(booking)  
 	+search_booking_from_user() 
+	+selected_item() : list
+	+add_item( item, amount ) : self
+	+remove_item( item, amount ) : self
+	+to_dict( item_list ) : dict
+	+fill_information(name, email, phone_no)
+	+check_coupon()
+
+Stock
+	-cabana_list[]
+	-locker_list[]
+	-medium_locker_amount = 50
+	-large_locker_amount = 20
+	-towel_amount = 5000
+	+show_all()
 
 DailyStock
 	-date
-	-reserve_ticket[]
-	-locker_list[]
-	-cabana_list[]
-	-all_towel
+	-reserve_medium_locker
+	-reserve_large_locker
 	-reserve_towel
-	+show_all()
-	+show_available()
-	+show_locker()
-	+show_cabana()
-	+show_towel()
-	+update_status() 
+	-reserve_ticket[]
+	-booking[]
+	+show_locker( date )
+	+show_cabana( date )
+	+show_towel( date )
+	+show_available( date )
+	+show_booking( date )
+	+update_daily_stock( date ) 
 
 ShowCabana
 	-id
@@ -43,8 +59,8 @@ ShowCabana
 	-zone
 	-price
 	-is_reserve
+
 ShowLocker
-	-id
 	-size
 	-price
 	-is_reserve
@@ -52,7 +68,7 @@ ShowLocker
 Ticket
 	-type
 	-price
-	-feature
+	-people_amount
 	-is_thai
 
 Customer
@@ -67,30 +83,50 @@ Member
 	-point
 	-point_history[]
 	+update_point()
+
 PointsHistory
 	-datetime
 	-point_after
 	-amount +/-
-	-reward = none
+	-type
+
 
 Coupon
-	-id
-	-feature
-	-expire_date
+	-code
+	-start_date
+	-end_date
+	-discount
+	+get_available_date(start_date, end_date)  : list
+
 Reward
+	-name
 	-require_point
-	-feature /coupon
+	-amount
+	-time_delta
+	+get_exp_date(name)
+	+get_stock_history(date, amount)
+	+update_stock(type, amount)
+
+RewardHistory
+	-reward
+	-datetime
+	-status = 'reserved'
+	+update_status(status)
+
+Order
+	-visit_date
+	-selected_item_list[]
+	-coupon = None
+	+add_item(product, qty)
+	+cal_total(price, qty)
+	+use_coupon(discount)
 
 Booking
 	-customer
 	-booking_id
-	-visit_date
+	-order
 	-oder_datetime
-	-selected_ticket[]
-	-selected_locker[]
-	-selected_cabana[]
-	-selected_towel 
-	-status /payment
+	-status /paid
 	+update_status() 
 
 Payment
@@ -105,26 +141,30 @@ Payment
 Promptpay
 	-qrcode
 	+gen_qr
+
 Payment2
 
-Promptpay --*> Payment
-Payment2 --*> Payment
-Member --*> Customer
-Member --> PointsHistory  
-PointsHistory --> Reward
-
-ShowCabana --<> DailyStock
-ShowLocker --<> DailyStock
-DailyStock --<> Waterpark
+ShowCabana --<> Stock
+ShowLocker --<> Stock
+Stock --<> Waterpark
 Coupon --<> Waterpark
 Ticket --<> Waterpark
 Customer --<> Waterpark
 Payment --<> Waterpark
-Reward --<> Waterpark
+
+Promptpay --*> Payment
+Payment2 --*> Payment
+Member --*> Customer
+DailyStock --*> Stock
 
 Customer -Create- Booking
-Booking --> ShowCabana 
-Booking --> ShowLocker
-Booking --> Ticket
+Order --> ShowCabana 
+Order --> ShowLocker
+Order --> Ticket
 Booking -- Payment
-Coupon --> Payment
+Member --> PointsHistory
+Member --> RewardHistory 
+RewardHistory --> Reward 
+Order --> Coupon
+Order --<*>Booking
+Reward --<> Waterpark
