@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastApi Frontend</title>
+</head>
+<br>
+    <h1>To-Do List</h1>
+
+    <!-- Section 1: Create Activity -->
+    <h2> Create Activity </h2>
+    <input type="number" id="newId" placeholder="ID">
+    <input type="text" id="newActivity" placeholder="Activity" />
+    <button id="createButton">Create Button</button>
+
+    <!-- Section 2: Edit Activity -->
+    <h2> Edit Activity </h2>
+    <input type="number" id="editId" placeholder="Activity ID">
+    <input type="text" id="editActivity" placeholder="New Activity" />
+    <button id="editButton">Edit Button</button>
+    
+    <!-- Section 3: Delete Activity -->
+    <h2> Edit Activity </h2>
+    <input type="number" id="deleteId" placeholder="Activity ID">
+    <button id="deleteButton">Delete Button</button>
+
+    <!-- Fetch Data Button -->
+    <br><br>
+    <button id="fetchDataButton"> Fetch Data </button>
+
+    <!-- To Do List -->
+    <ul id="todo-list"></ul>
+    
+    <script>
+        $(document).ready(function() {
+            function fetchData() {
+                $.ajax({
+                    url: '/todo',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#todo_list')
+                    }
+                })
+            }
+        })
+
+    </script>
+
+</body>
+</html>
