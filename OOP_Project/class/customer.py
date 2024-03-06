@@ -1,12 +1,11 @@
-from pointhistory import PointsHistory
 from booking import Booking
 from datetime import datetime
 from reward import Reward
 class Customer:
-    def __init__(self, name, email, phone_number):
+    def __init__(self, name, email, phone_no):
         self.__name = name
         self.__email = email
-        self.__phone_number = phone_number
+        self.__phone_no = phone_no
         self.__booking_list = []
     
     @property
@@ -15,11 +14,22 @@ class Customer:
     @property
     def email(self):
         return self.__email
+    @property
+    def phone_no(self):
+        return self.__email
+    @property
+    def booking_list(self):
+        return self.__booking_list
     
-    def add_booking(self, booking):
+    def add_booking(self, booking: Booking):
         if not isinstance(booking, Booking):
             return None
         self.__booking_list.append(booking)
+        return "Done"
+    def remove_booking(self, booking: Booking):
+        if not isinstance(booking, Booking):
+            return None
+        self.__booking_list.remove(booking)
         return "Done"
         
 class Member(Customer):

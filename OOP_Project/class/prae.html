@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        .container{
+            
+        }
+        .wrapper{
+            display: flex ;
+            margin: 10px;
+            justify-content:flex-start;
+        }
+    </style>
+
+</head>
+<body>
+    <form action="">
+
+        <div class="container">
+            <div class="wrapper">
+                <div>
+                    Ticket
+                </div>
+                <a onclick="deleteTicket('ticket')">
+                    -
+                </a>
+
+                <div class="ticket">0</div>
+                <a onclick="addTicket('ticket')">
+                    +
+                </a>
+                
+            </div>
+        </div>
+        
+        <button type="submit">
+            submit
+        </button>
+    </form>
+    <script>       
+        
+        const addTicket = () => {
+            let ticket = document.querySelector('.ticket')
+            let value = ticket.innerText 
+            value = Number(value) + 1
+            ticket.innerText = `${value}`
+        }
+        const deleteTicket = () => {
+            let ticket = document.querySelector('.ticket')
+            let value = ticket.innerText 
+            value = Number(value) - 1
+            ticket.innerText = `${value}`
+        }
+    </script>
+</body>
+</html>

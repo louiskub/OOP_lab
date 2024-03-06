@@ -30,7 +30,9 @@
     <button id="fetchDataButton"> Fetch Data </button>
 
     <!-- To Do List -->
-    <ul id="todo-list"></ul>
+    <ul id="todo-list">
+
+    </ul>
     
     <script>
         $(document).ready(function() {
@@ -40,11 +42,21 @@
                     method: 'GET',
                     dataType: 'json',
                     success: function(data) {
-                        $('#todo_list')
+                        $('#todo_list').empty();
+                        $.each(data, (index, todo) => {
+                            $('#todo-list').append(`<li> ${todo.id} : ${todo.activity} + </li>`)
+                        })
+                    },
+                    error: (xhr, status, error) => {
+                        console.error('Error fetching todo list : ', status, error);
                     }
-                })
+                });
             }
-        })
+        }
+        
+        
+        
+    )
 
     </script>
 

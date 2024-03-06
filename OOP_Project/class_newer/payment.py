@@ -1,7 +1,6 @@
 from datetime import datetime, date
 
 class Payment :
-    
     def pay(self):
         return True
     def request_info():
@@ -11,11 +10,10 @@ class BankPayment(Payment) :
     def __init__(self):
         self.__account_no = None
 
-    def pay(self, transaction, acount_no):
-        self.__account_no = acount_no
+    def pay(self, transaction, info):
+        self.__account_no = info["acount_no"]
         transaction.status = True
         return True
-    
     def request_info(self):
         return {"acount_no": None}
 
@@ -24,9 +22,9 @@ class CardPayment(Payment) :
         self.__card_no = None
         self.__card_pin = None 
 
-    def pay(self, transaction, card_no, card_pin):
-        self.__card_no = card_no
-        self.__card_pin = card_pin
+    def pay(self, transaction, info):
+        self.__card_no = info["card_no"]
+        self.__card_pin = info["card_pin"]
         transaction.status = True
         return True
 
@@ -46,23 +44,29 @@ class PaymentTransaction :
         self.__transaction_id = PaymentTransaction.__id
         self.__status = False
         PaymentTransaction.__id += 1
-
+    
+    @property
+    def transaction_id(self):
+        return self.__transaction_id
     @property
     def payment_method(self):
         return self.__payment_method
+    @property
+    def create_datetime(self):
+        return self.__create_datetime
     @property
     def status(self):
         return self.__status
     @status.setter
     def status(self, status: bool):
         self.status = status
-
+    
     def show_payment(self):
         return {
                 "request_info": self.__payment_method.request_info(),
-                "transaction_id": self.__transaction_id,
-                "amount": self.__amount,
-                "create_datetime": self.__create_datetime.strftime("%m/%d/%Y, %H:%M:%S")
+                "transaction_id": str(self.__transaction_id),
+                "amount": str(self.__amount),
+                "create_datetime": str(self.__create_datetime.strftime("%m/%d/%Y, %H:%M:%S"))
                 }
     def booking_to_pdf_info(self):
         booking = self.__booking
