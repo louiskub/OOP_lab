@@ -1,4 +1,5 @@
-from booking import Order, Booking
+from booking import Booking
+from order import Order
 from service import Cabana, Locker, Ticket, Towel
 from datetime import date, timedelta
 

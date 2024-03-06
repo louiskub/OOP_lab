@@ -13,6 +13,7 @@ class BankPayment(Payment) :
     def pay(self, transaction, info):
         self.__account_no = info["acount_no"]
         transaction.status = True
+        transaction.payment_datetime = datetime.now()
         return True
     def request_info(self):
         return {"acount_no": None}
@@ -26,6 +27,7 @@ class CardPayment(Payment) :
         self.__card_no = info["card_no"]
         self.__card_pin = info["card_pin"]
         transaction.status = True
+        transaction.set_payment_datetime()
         return True
 
     def request_info(self):
@@ -35,19 +37,20 @@ class CardPayment(Payment) :
                 }
 
 class PaymentTransaction :
-    __id = 0
+    __id = 100000
     def __init__(self, booking, amount, payment_method: Payment, datetime): #
         self.__booking = booking
         self.__amount = amount
         self.__payment_method = payment_method
         self.__create_datetime = datetime
-        self.__transaction_id = PaymentTransaction.__id
+        self.__payment_datetime = None
+        self.__id = PaymentTransaction.__id
         self.__status = False
         PaymentTransaction.__id += 1
     
     @property
-    def transaction_id(self):
-        return self.__transaction_id
+    def id(self):
+        return self.__id
     @property
     def payment_method(self):
         return self.__payment_method
@@ -60,13 +63,14 @@ class PaymentTransaction :
     @status.setter
     def status(self, status: bool):
         self.status = status
-    
+    def set_payment_datetime(self):
+        self.__payment_datetime = datetime.now()
+
     def show_payment(self):
         return {
-                "request_info": self.__payment_method.request_info(),
-                "transaction_id": str(self.__transaction_id),
+                "transaction_id": str(self.__id),
                 "amount": str(self.__amount),
-                "create_datetime": str(self.__create_datetime.strftime("%m/%d/%Y, %H:%M:%S"))
+                "create_datetime": self.__create_datetime
                 }
     def booking_to_pdf_info(self):
         booking = self.__booking
@@ -78,7 +82,7 @@ class PaymentTransaction :
                 "Phone Number": customer.phone_no
             },
             "Booking": {
-                "Booking Id": booking.booking_id,
+                "Booking Id": booking.id,
                 "Date Of Order": booking.order_datetime.strftime("%d %B %Y"),
                 "Payment Status": "PAID"
             },

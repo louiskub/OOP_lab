@@ -146,11 +146,14 @@ you will receive wristbands for entry to our park."
 
     def show_booking(self, booking_id):
         file_name = str(booking_id)+".pdf"
+        print(file_name)
         file_path = self.__file_path + file_name
         if not os.path.exists(file_path):
             return RedirectResponse('/pagenotfound', status_code=200)
-        return FileResponse(file_path, media_type="application/pdf", filename=file_name)
-    
+        headers = {
+                "Content-Disposition": "inline;"
+        } 
+        return FileResponse(file_path, media_type="application/pdf", filename=file_name, headers=headers)
 
 if '__main__' == __name__ :
     f = FinishBookingManager()

@@ -18,7 +18,7 @@ class Customer:
         return self.__email
     @property
     def phone_no(self):
-        return self.__email
+        return self.__phone_no
     @property
     def booking_list(self):
         return self.__booking_list
@@ -34,22 +34,61 @@ class Customer:
         is_valid_phone_no = bool(pattern.match(phone_number))
         return is_valid_phone_no            
 
-class Member(Customer):
-    def __init__(self, name, email, phone_number, birthday, password):
-        super().__init__(name, email, phone_number)
-        self.__id = 0
+class Member:
+    __ID = 1
+    def __init__(self, name, email, phone_no, birthday, password):
+        self.__name = name
+        self.__email = email
+        self.__id = Member.__ID
         self.__birthday = birthday
-        self.__point = 0
         self.__password = password
+        self.__phone_no = phone_no
+        self.__booking_list = []
+        Member.__ID += 1
+
     @property
     def id(self):
         return self.__id
+    @property
+    def name(self):
+        return self.__name
+    @property
+    def email(self):
+        return self.__email
+    @property
+    def phone_no(self):
+        return self.__phone_no
+    @property
+    def booking_list(self):
+        return self.__booking_list      
+    
+    def check_email(email):
+        try:
+            validate_email(email)
+            return True
+        except EmailNotValidError:
+            return False
+        
+    def check_phone_number(phone_number): 
+        pattern = re.compile(r'^0\d*$')  # Starts with '0' and followed by any number of digits
+        is_valid_phone_no = bool(pattern.match(phone_number))
+        return is_valid_phone_no  
+    
+    def to_dict(self):
+        return {
+            "id": self.__id,
+            "name": self.__name,
+            "email": self.__email,
+            "phone_no": self.__phone_no,
+            "booking_list": self.__booking_list
+        }
     
     def add_booking(self, booking: Booking):
         if not isinstance(booking, Booking):
             return None
         self.__booking_list.append(booking)
         return "Done"
+    
     def remove_booking(self, booking: Booking):
         if not isinstance(booking, Booking):
             return None
