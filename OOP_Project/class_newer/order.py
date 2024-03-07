@@ -6,7 +6,7 @@ class Order:
         self.__order_detail = []
         self.__total = 0
         self.__promotion = None
-
+    
     def __str__(self):
         return f"{[order for order in self.__order_detail]}\nTOTAL: {self.__total}"
     @property
@@ -17,21 +17,38 @@ class Order:
         return self.__order_detail
     @property
     def total(self):
+        price = self.cal_price() 
+        discount = self.cal_discount()
+        self.__total = price - discount
+        return self.__total
+    @property
+    def promotion(self):
+        return self.__promotion
+    @promotion.setter
+    def promotion(self, promotion):
+        self.__promotion = promotion
+
+    def cal_price(self):
         total = 0
         for items in self.__order_detail:
             total += items.total_price
-        self.__total = total
-        
-        return self.__total
+        return total
+    
+    def cal_discount(self):
+        if self.promotion == None : return 0
+        total = self.cal_price()
+        if self.promotion.is_expired() or self.promotion.min_purchase > total :
+            self.promotion = None
+            return 0
+        return self.promotion.get_discount(total)
     
     def to_dict(self):
         return {
             "visit_date": self.__visit_date,
             "order_detail": [detail.to_dict() for detail in self.__order_detail],
             "total": self.total,
-            "promotion": self.__promotion,
+            "discount": self.cal_discount()
         }
-    
     def to_pdf(self):
         return [detail.to_dict() for detail in self.__order_detail]
     def add_item(self, item) : # Press the add button

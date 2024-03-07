@@ -131,6 +131,10 @@ class WaterPark:
             member.verify_member(email, password)
         return 'Email or password is incorrect.'
     
+
+    #def apply_code(self, member_id: int):
+
+
     def show_confirm(self, member_id: int):
         member = self.search_member_from_id(member_id)
         if member.order == None:
@@ -168,12 +172,13 @@ class WaterPark:
         payment_method = deepcopy(self.payment_list[payment_method]) #bankpayment
         transaction = PaymentTransaction(booking.id, booking.order.total)
         payment_method.pay(transaction, info)
+        self.add_transaction(transaction)
         booking.update_status()
         member.add_booking(booking)
         booking_info = self.booking_to_pdf(member)
         member.booking_temp, member.order = None, None
         self.__finish_booking_manager.create_pdf(booking_info)
-        return "pay success"
+        return f"pay success {member.id}, {booking.id}"
     
     def show_finish_booking(self, member_id, booking_id):
         member = self.search_member_from_id(member_id)
@@ -183,8 +188,8 @@ class WaterPark:
             return "booking not found"
         return self.__finish_booking_manager.view_finish_booking(booking_id)
 
-
     def search_promotion_from_code(self, code: str):
+        code = code.upper()
         for promotion in self.__promotion_list:
             if promotion.code == code:
                 return promotion
@@ -226,19 +231,7 @@ class WaterPark:
     def add_member(self, member: Member):
         self.__member_list.extend(member)
     def add_promotion(self, promotion: Promotion):
-        self.__promotion_list.append(promotion)
-
-    def delete_this_transaction(self, transaction: PaymentTransaction):
-        self.__transaction_list.remove(transaction)
-        return "Done"
-    
-    def delete_this_booking(self, booking: Booking):
-        customer = booking.customer
-        customer.remove_booking(booking)
-        if len(customer.booking_list) == 0 and not isinstance(customer, Member):
-            self.delete_this_customer(customer)
-        return "Done"
-    
+        self.__promotion_list.extend(promotion)    
     def get_member_list(self):
         return self.__member_list
     
@@ -266,25 +259,30 @@ class WaterPark:
 
 
 def create_promotion():
-    lst = [
-        AmountCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "angthong" , 200, 100),
-        AmountCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "angthong" , 200, 100),
-
+    return [
+        AmountCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "35IWK0M5" , 200, 1000),
+        AmountCoupon(date.today()-timedelta(days=5) ,date.today()+timedelta(days=4) , "O1KSXG0X" , 300, 1000),
+        AmountCoupon(date.today()-timedelta(days=10) ,date.today()+timedelta(days=5) , "QLC6EBTS" , 350, 2000),
+        AmountCoupon(date.today()+timedelta(days=20) ,date.today()-timedelta(days=7) , "VBH7P77F" , 300, 2000),
+        PercentCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "DU4LY3HV" , 10),
+        PercentCoupon(date.today()-timedelta(days=5) ,date.today()+timedelta(days=4) , "IV3WLCHW" , 15),
+        PercentCoupon(date.today()-timedelta(days=10) ,date.today()+timedelta(days=5) , "VROPTVOJ" , 20, 2500),
+        PercentCoupon(date.today()+timedelta(days=20) ,date.today()-timedelta(days=7) , "UCJHSTWQ" , 30)
     ]
-    lst.append(AmountCoupon(date.today() - timedelta(days=1*2) , date.today() + timedelta(days=i*2) , str(i)*5 , 200, 100))
-    lst.append(PercentCoupon(date.today() - timedelta(days=i*2) , date.today() + timedelta(days=i*2) , str(2*i-1)*5 , 200, 100))
 def create_member():
-    return [ Member("James", "james123@gmail.com", "0812345678", date(2001,2,14), "12xncvbj34")
-    ,Member("Yuji", "66010660@kmitl.ac.th", "0823456789", date(2002,1,3), "1xbv3z234")
-    ,Member("Irene", "irene123@gmail.com", "0834567890", date(2003,4,2), "jdies234")
-    ,Member("Charlotte", "charlotte@gmail.com", "0845678901", date(2004,1,4), "w.sa12sm.34")
-    ,Member("Sharon", "sharon12@gmail.com", "0856789012", date(1998,12,1), "1ksl23aqo4")
-    ,Member("Rose", "rose1234@gmail.com", "0867890123", date(1999,6,1), "sznkal34")
-    ,Member("Lucian", "lucian123@gmail.com", "0878901234", date(2000,1,1), "2.lasm_p4")
-    ,Member("Zeno", "zeno1234@gmail.com", "0889012345", date(2005,9,1), "1splalr0es3")
-    ,Member("Apollo", "apollo12@gmail.com", "0890123456", date(2006,3,1), "wqygwoaqr234")
-    ,Member("Lucian", "lucian123@gmail.com", "0801234567", date(1997,10,1), "teosrl_234")
-    ,Member("Dion", "dion1234@gmail.com", "0898765432", date(1996,1,1), "sjgflxlsj_t") ]
+    return [ 
+        Member("James", "james123@gmail.com", "0812345678", date(2001,2,14), "12xncvbj34")
+        ,Member("Yuji", "66010660@kmitl.ac.th", "0823456789", date(2002,1,3), "1xbv3z234")
+        ,Member("Irene", "irene123@gmail.com", "0834567890", date(2003,4,2), "jdies234")
+        ,Member("Charlotte", "charlotte@gmail.com", "0845678901", date(2004,1,4), "w.sa12sm.34")
+        ,Member("Sharon", "sharon12@gmail.com", "0856789012", date(1998,12,1), "1ksl23aqo4")
+        ,Member("Rose", "rose1234@gmail.com", "0867890123", date(1999,6,1), "sznkal34")
+        ,Member("Lucian", "lucian123@gmail.com", "0878901234", date(2000,1,1), "2.lasm_p4")
+        ,Member("Zeno", "zeno1234@gmail.com", "0889012345", date(2005,9,1), "1splalr0es3")
+        ,Member("Apollo", "apollo12@gmail.com", "0890123456", date(2006,3,1), "wqygwoaqr234")
+        ,Member("Lucian", "lucian123@gmail.com", "0801234567", date(1997,10,1), "teosrl_234")
+        ,Member("Dion", "dion1234@gmail.com", "0898765432", date(1996,1,1), "sjgflxlsj_t") 
+    ]
 
 def create_cabana():
     wave_pool_zone = []

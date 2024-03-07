@@ -17,9 +17,11 @@ class PercentCoupon(Promotion):
     @property
     def code(self):
         return self.__code
-    
+    @property
+    def min_purchase(self):
+        return self.__min_purchase
     def get_discount(self, total):
-        return total*(self.__discount)/100
+        return int(self.__discount * total / 100)
 
 class AmountCoupon(Promotion):
     def __init__(self, start_date, end_date, code, discount, min_purchase):
@@ -34,7 +36,7 @@ class AmountCoupon(Promotion):
     @property
     def min_purchase(self):
         return self.__min_purchase
-    def get_discount(self):
+    def get_discount(self, total):
         return self.__discount
     
 if '__main__' == __name__:

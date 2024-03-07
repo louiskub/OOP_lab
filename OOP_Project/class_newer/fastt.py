@@ -19,10 +19,15 @@ class CardInput(BaseModel):
 class BankInput(BaseModel):
     account_no: int
     bank_name: str
+class CouponInput(BaseModel):
+    code: str | None = None
+    is_delete: int | None = None # 1
 
 waterpark = WaterPark()
 member = create_member()
+promotion = create_promotion()
 waterpark.add_member(member)
+waterpark.add_promotion(promotion)
 mem = member[1]
 order = create_order()
 #print(waterpark.get_member_list())
@@ -47,16 +52,21 @@ mem.order = order
 
 
 
-
-
-
-
-
 # ---- apply coupon
 @app.put('/{member_id}/services', tags=['services'])
-def add_coupon(member_id: int, code: str):
-    coupon = waterpark.search_promotion_from_code(code)
+def add_coupon(member_id: int, info: CouponInput):
+    info = info.dict()
     member = waterpark.search_member_from_id(member_id)
+    if info["is_delete"] == 1 : 
+        member.order.promotion = None
+        return "delete coupon in order"
+    coupon = waterpark.search_promotion_from_code(info["code"])
+    order = member.order
+    # if coupon == None: return "coupon not found"
+    # if coupon.is_expired() == True : return "coupon Expired"
+    # if coupon.min_purchase > order.total : return "cannot use this"
+    order.promotion = coupon
+    return order.to_dict()
 
 
 # ---- show confirm 
