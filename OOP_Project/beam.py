@@ -443,7 +443,7 @@ class Order:
             if item == items.item:
                 items - 1
                 if items.amount == 0:
-                   self.__order_detail.remove(items)
+                    self.__order_detail.remove(items)
                 return self
         return self
     

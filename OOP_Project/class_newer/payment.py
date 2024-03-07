@@ -9,10 +9,12 @@ class Payment :
 class BankPayment(Payment) :
     def __init__(self):
         self.__account_no = None
+        self.__bank_name = None
 
     def pay(self, transaction, info):
         info = info.dict()
         self.__account_no = info["account_no"]
+        self.__bank_name = info["bank_name"]
         transaction.status = True
         transaction.set_payment_datetime()
         transaction.payment_method = self

@@ -82,3 +82,29 @@ if __name__ == "__main__":
         "all_api:app", host="127.0.0.1", port=8000, log_level="info", reload=True
     )
 # รียกใช้ Uvicorn เพื่อรัน FastAPI ที่ host "127.0.0.1" และ port 8000 โดยใช้ไฟล์ all_api.py และกำหนดให้โหลดโมดูลใหม่อัตโนมัติเมื่อมีการแก้ไขโค้ด (reload)
+    
+
+
+###################################### prae #################################
+    
+class item(BaseModel):
+    name: str
+    size: str | None = None
+    type: str | None = None
+    zone: str | None = None
+    id: str | None = None
+
+# GET -- > Show Homepage
+@app.get("/", tags = ['Home'])
+async def show_homepage() -> dict:
+    return {"Welcome to": "our waterpark"}
+
+# POST-- > Add item to order.
+@app.post("/{member_id}/services/{day}", tags=['Services'])
+async def add_order(member_id: int, date: str, item: item):
+    return system.manage_order(member_id, date, item, 'A')
+
+# DELETE-- > Remove item from order.
+@app.delete("/{member_id}/services/{day}", tags=['Services'])
+async def add_order(member_id: int, date: str, item: item):
+    return system.manage_order(member_id, date, item, 'R')

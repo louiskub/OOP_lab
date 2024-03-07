@@ -5,8 +5,8 @@ from datetime import datetime, timedelta, date
 from customer import Customer, Member
 from payment import Payment, BankPayment, CardPayment, PaymentTransaction
 from bookingmanager import FinishBookingManager
-from fastapi.responses import RedirectResponse
 from order import Order, OrderDetail
+from promotion import Promotion, AmountCoupon, PercentCoupon
 from copy import deepcopy
 from starlette import status
 
@@ -25,9 +25,14 @@ class WaterPark:
 
     def get_member_list(self):
         return self.__member_list
+    
+    def get_zone(self):
+        return self.__zone_list
+    
     @property
     def payment_list(self):
         return self.__payment_list
+    
     def add_daily_stock(self, daily):
         self.__daily_stock_list.append(daily)    
         
@@ -48,23 +53,22 @@ class WaterPark:
                 return daily
         return None  
     
+    def format_str_to_date(self, str_date): # If input date as string.
+        try:
+            selected_date = date.fromisoformat(str_date)
+            return selected_date
+        except ValueError:
+            return None
+
     def get_services_in_stock(self, stock):
         services = {}
         services["Ticket"] = stock.ticket_list
-        services["Cabana"] = stock.cabana_list
+        services["Cabana"] = {}
+        for zone in self.__zone_list:
+            services["Cabana"][zone] = stock.get_cabana_in_zone(zone)
         services["Locker"] = stock.locker_list
         services["Towel"] = stock.towel
-        return services    
-        
-    def get_all_services(self) : # When press services button
-        return self.get_services_in_stock(self.__stock)
-        
-    def get_services_in_date(self, date): # After selected date
-        daily_stock = self.search_daily_stock_from_date(date)
-        return self.get_services_in_stock(daily_stock)
-    
-    def get_zone(self):
-        return self.__zone_list
+        return services     
     
     def get_cabana_in_zone(self, date):
         daily_stock = self.search_daily_stock_from_date(date)
@@ -73,17 +77,41 @@ class WaterPark:
             cabana_in_zone[zone] = daily_stock.get_cabana_in_zone(zone)
         return cabana_in_zone
     
-    def create_order(self, date):
-        return Order(date)
+    def find_item(self, daily_stock, item: dict):
+        item = item.dict()
+        if item['name'] == 'cabana':
+            for cabana in daily_stock.get_cabana_in_zone(item['zone']):
+                if item['id'] == cabana.id:
+                    return cabana
+        elif item['name'] == 'locker':
+            for locker in daily_stock.locker_list:
+                if locker.size == item['size']:
+                    return locker
+        elif item['name'] == 'ticket':
+            for ticket in daily_stock.ticket_list:
+                if ticket.type == item['type']:
+                    return ticket
+        elif item['name'] == 'towel':
+            return daily_stock.towel
+        return None
     
-    def add_item(self, item, order): # Press (+) button.
-        daily_stock = self.search_daily_stock_from_date(order.visit_date)
-        if daily_stock.is_available(item, 1):
-            order.add_item(item)
-        return order
-    
-    def remove_item(self, item, order): # Press (-) button.
-        return order.remove_item(item)
+    def manage_order(self, member_id: int, date: str, items, type): # type A = Add, R = Reduce
+        selected_date = self.format_str_to_date(date)
+        member = self.search_member_from_id(member_id)
+        if selected_date != None:
+            if member != None:
+                order = member.get_order_from_visit_date(selected_date)
+                daily_stock = self.search_daily_stock_from_date(selected_date)
+                item = self.find_item(daily_stock, items)
+                if item != None:
+                    if type == 'A' and daily_stock.is_available(item, 1): # Press (+) button.
+                        return order.add_item(item)
+                    elif type == 'R': # Press (-) button.
+                        return order.reduce_item(item)
+                    return 'Invalid type. Please choose A(Add) or R(Reduce).'
+                return 'Invalid item.'
+            return 'Invalid member id.'
+        return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
 
     def become_member(self, name, email, phone_number, birthday, password):
         for member in self.__member_list:
@@ -123,6 +151,7 @@ class WaterPark:
             "amount": str(booking.order.total),
             "payment_method": payment_method
         }
+    
     def paid(self, member_id: int, info, payment_method):
         member = self.search_member_from_id(member_id)
         booking = member.booking_temp
@@ -153,6 +182,13 @@ class WaterPark:
         if self.search_booking_from_member(member, booking_id) == None:
             return "booking not found"
         return self.__finish_booking_manager.view_finish_booking(booking_id)
+
+
+    def search_promotion_from_code(self, code: str):
+        for promotion in self.__promotion_list:
+            if promotion.code == code:
+                return promotion
+        return None
 
     def search_booking_from_id(self, id) -> Booking:   #search in customer&&member
         for member in self.__member_list:
@@ -189,7 +225,8 @@ class WaterPark:
         self.__daily_stock_list.append(dailystock)
     def add_member(self, member: Member):
         self.__member_list.extend(member)
-
+    def add_promotion(self, promotion: Promotion):
+        self.__promotion_list.append(promotion)
 
     def delete_this_transaction(self, transaction: PaymentTransaction):
         self.__transaction_list.remove(transaction)
@@ -228,8 +265,14 @@ class WaterPark:
 
 
 
+def create_promotion():
+    lst = [
+        AmountCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "angthong" , 200, 100),
+        AmountCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "angthong" , 200, 100),
 
-
+    ]
+    lst.append(AmountCoupon(date.today() - timedelta(days=1*2) , date.today() + timedelta(days=i*2) , str(i)*5 , 200, 100))
+    lst.append(PercentCoupon(date.today() - timedelta(days=i*2) , date.today() + timedelta(days=i*2) , str(2*i-1)*5 , 200, 100))
 def create_member():
     return [ Member("James", "james123@gmail.com", "0812345678", date(2001,2,14), "12xncvbj34")
     ,Member("Yuji", "66010660@kmitl.ac.th", "0823456789", date(2002,1,3), "1xbv3z234")
@@ -296,10 +339,7 @@ def create_cabana():
     return cabana_list
 
 def create_locker():
-    locker_list = []
-    locker_list.append(Locker('M', 149, 80)) # Locker
-    locker_list.append(Locker('L', 229, 20))
-    
+    locker_list = [Locker('M', 149, 80), Locker('L', 229, 20)]
     return locker_list
     
 def create_ticket():
@@ -322,11 +362,11 @@ def create_ticket():
 def create_daily_stock():
     today = date.today()
     lst = []
-    for i in range(60) :
+    for i in range(60):
         lst.append(DailyStock(today + timedelta(days=i)))
     return lst
 
-def create_order(member):
+def create_order():
     t = Ticket('Full Day', 1, 699)
     c = Cabana('W01', 'S', 'Wave Pool')
     order = Order(date.today()+ timedelta(days=3))
@@ -334,9 +374,6 @@ def create_order(member):
     order.add_item(t)
     order.add_item(c)
     order.add_item(c)
-    c = create_member()
-    #booking = Booking(member.id, order, date.today())
-    #print(booking.to_dict())
     return order
 
 def constructor():

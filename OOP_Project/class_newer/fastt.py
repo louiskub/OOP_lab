@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.responses import RedirectResponse
 from service import Cabana, Towel, Ticket, Locker 
-from order import OrderDetail
-from customer import Customer, Member
+from order import Order, OrderDetail
+from customer import Member
 from stock import Stock, DailyStock
 from datetime import datetime, timedelta
 
@@ -15,27 +15,48 @@ app = FastAPI()
 class CardInput(BaseModel):
     card_no: int
     card_pin: int
+
 class BankInput(BaseModel):
     account_no: int
-class CouponInput(BaseModel):
-    code: str
+    bank_name: str
 
 waterpark = WaterPark()
 member = create_member()
 waterpark.add_member(member)
 mem = member[1]
-order = create_order(mem)
+order = create_order()
 #print(waterpark.get_member_list())
 #mem.add_booking(booking)
 print(mem.id)
 mem.order = order
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ---- apply coupon
 @app.put('/{member_id}/services', tags=['services'])
-def add_coupon(member_id, coupon_input: CouponInput):
-    return
-
+def add_coupon(member_id: int, code: str):
+    coupon = waterpark.search_promotion_from_code(code)
+    member = waterpark.search_member_from_id(member_id)
 
 
 # ---- show confirm 
@@ -50,14 +71,6 @@ def show_bank_payment(member_id: int):
 @app.get('/{member_id}/show_payment/card', tags=['show_payment'])
 def show_card_payment(member_id: int):
     return waterpark.show_payment(member_id, "card")
-
-#กดออก
-# @app.delete('/{member_id}/show_payment/bank', tags=['show_payment']) #delte tranasaction
-# def delete_payment(member_id: int):
-#     return waterpark.cancel_payment(int(member_id))
-# @app.delete('/{member_id}/show_payment/card', tags=['show_payment']) #delte tranasaction
-# def delete_payment(member_id: int):
-#     return waterpark.cancel_payment(int(member_id))
 
 #กดจ่ายตัง
 @app.put('/{member_id}/show_payment/bank', tags=['show_payment'])
