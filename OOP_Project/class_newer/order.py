@@ -31,6 +31,8 @@ class Order:
             "promotion": self.__promotion,
         }
     
+    def to_pdf(self):
+        return [detail.to_dict() for detail in self.__order_detail]
     def add_item(self, item) : # Press the add button
         if isinstance(item, Cabana):
             for items in self.__order_detail:

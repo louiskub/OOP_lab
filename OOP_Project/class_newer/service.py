@@ -43,26 +43,32 @@ class Cabana:
 
     def __str__(self):
         return f"Cabana({self.__size}): {self.__zone} Zone"
+    
     @property
     def id(self):
         return self.__id
+    
     @property
     def size(self):
         return self.__size
     @property
     def zone(self):
         return self.__zone
+    
     @property
     def is_reserve(self):
         return self.__is_reserve    
+    
     @property    
     def price(self):
         return self.__price
-    def update_is_reserve(self, type): # A = Add, R = Remove
+    
+    def update_status(self, type): # A = Add, R = Remove
         if type == 'A':
-            self.__is_reserve = True
-        elif type == 'R':
             self.__is_reserve = False
+        elif type == 'R':
+            self.__is_reserve = True
+            
     def name(self):
         return f"Cabana Zone {self.__zone} Size {self.__size}"
 
@@ -74,21 +80,25 @@ class Locker:
             self.__price = 149
         elif size == "L" :
             self.__price = 229
+
     @property
     def price(self):
         return self.__price
+    
     @property
     def size(self):
         return self.__size
+    
     @property
     def remaining_amount(self):
         return self.__remaining_amount
     
-    def update_remaining_amount(self, type, amount): # A = Add, R = Remove
-        if type == 'A':
+    def update_status(self, type, amount): # A = Add, R = Remove
+        if type == 'A' and 0 < amount:
             self.remaining_amount += amount
-        elif type == 'R':
+        elif type == 'R' and 0 < amount <= self.remaining_amount:
             self.remaining_amount -= amount
+
     def name(self):
         return f"Locker Size {self.__size}"
 
@@ -96,17 +106,21 @@ class Towel:
     def __init__(self, remaining_amount=100):
         self.__remaining_amount = remaining_amount
         self.__price = 99
+
     @property
     def price(self):
         return self.__price
+    
     @property
     def remaining_amount(self):
         return self.__remaining_amount
-    def update_remaining_amount(self, type, amount): # A = Add, R = Remove
-        if type == 'A':
+    
+    def update_status(self, type, amount): # A = Add, R = Remove
+        if type == 'A' and 0 < amount:
             self.remaining_amount += amount
-        elif type == 'R':
+        elif type == 'R' and 0 < amount <= self.remaining_amount:
             self.remaining_amount -= amount
+
     def name(self):
         return "Towel"
     

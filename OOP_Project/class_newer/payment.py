@@ -24,17 +24,15 @@ class CardPayment(Payment) :
         self.__card_pin = None 
 
     def pay(self, transaction, info):
+        
+        info = info.dict()
         self.__card_no = info["card_no"]
         self.__card_pin = info["card_pin"]
         transaction.status = True
         transaction.set_payment_datetime()
+        #transaction.set_payment_method(self)
         return True
 
-    def request_info(self):
-        return {
-            "card_no": None, 
-            "card_pin": None
-                }
 
 class PaymentTransaction :
     __id = 100000
@@ -55,6 +53,9 @@ class PaymentTransaction :
     def payment_method(self):
         return self.__payment_method
     @property
+    def booking(self):
+        return self.__booking
+    @property
     def create_datetime(self):
         return self.__create_datetime
     @property
@@ -62,7 +63,7 @@ class PaymentTransaction :
         return self.__status
     @status.setter
     def status(self, status: bool):
-        self.status = status
+        self.__status = status
     def set_payment_datetime(self):
         self.__payment_datetime = datetime.now()
 
@@ -79,7 +80,7 @@ class PaymentTransaction :
             "Customer": {
                 "Name": customer.name,
                 "Email": customer.email,
-                "Phone Number": customer.phone_no
+                "Phone Number": str(customer.phone_no)
             },
             "Booking": {
                 "Booking Id": booking.id,
@@ -89,6 +90,6 @@ class PaymentTransaction :
             "Order": {
                 "Date Of Visit": order.visit_date.strftime("%d %B %Y"),
                 "Total" : order.total,
-                "Order Detail": order.show_order_detail()
+                "Order Detail": order.to_pdf()
             }
         }

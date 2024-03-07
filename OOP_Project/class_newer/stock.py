@@ -137,26 +137,32 @@ class DailyStock(Stock):
             if cabana.is_reserve == False:
                 cabana_list.append(cabana)
         return cabana_list
-    def reserve(self, order: Order):
-        if not isinstance(order, Order):
-            return None
-        order_detail = order.selected_item_list
-        for each_order in order_detail:
-            if each_order[0] == "Cabana":
-                if each_order[1].is_reserve == False:
-                    each_order[1].is_reserve = True
-            elif each_order[0] == "Towel":
-                if each_order[1] <= self.get_remaining_towel():
-                    self.__towel_reserved += each_order[1]
-            elif isinstance(each_order[0], Locker) :
-                if each_order[0].size == 'M' and each_order[1] <= self.get_remaining_medium_locker():
-                    self.__medium_locker_reserved += each_order[1]
-                elif each_order[0].size == 'L' and each_order[1] <= self.get_remaining_large_locker():
-                    self.__towel_reserved += each_order[1]
-        return "Done"
+    # def reserve(self, order: Order):
+    #     if not isinstance(order, Order):
+    #         return None
+    #     order_detail = order.selected_item_list
+    #     for each_order in order_detail:
+    #         if each_order[0] == "Cabana":
+    #             if each_order[1].is_reserve == False:
+    #                 each_order[1].is_reserve = True
+    #         elif each_order[0] == "Towel":
+    #             if each_order[1] <= self.get_remaining_towel():
+    #                 self.__towel_reserved += each_order[1]
+    #         elif isinstance(each_order[0], Locker) :
+    #             if each_order[0].size == 'M' and each_order[1] <= self.get_remaining_medium_locker():
+    #                 self.__medium_locker_reserved += each_order[1]
+    #             elif each_order[0].size == 'L' and each_order[1] <= self.get_remaining_large_locker():
+    #                 self.__towel_reserved += each_order[1]
+    #     return "Done"
+    
+    def update_item(self, item, amount):
+        if isinstance(item, Cabana):
+            item.update_status('R')
+        elif not isinstance(item, Ticket):
+            item.update_status('R', amount)
     def is_available(self, item, amount):
         if isinstance(item, Cabana):
-            return not item.is_reseve # If reserved = Not available
+            return not item.is_reserve # If reserved = Not available
         elif not isinstance(item, Ticket):
             return item.remaining_amount >= amount
         return True

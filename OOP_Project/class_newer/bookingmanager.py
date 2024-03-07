@@ -144,7 +144,7 @@ you will receive wristbands for entry to our park."
         except:
             print('Email failed to send.')
 
-    def show_booking(self, booking_id):
+    def view_finish_booking(self, booking_id):
         file_name = str(booking_id)+".pdf"
         print(file_name)
         file_path = self.__file_path + file_name

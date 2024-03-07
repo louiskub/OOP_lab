@@ -8,6 +8,7 @@ from bookingmanager import FinishBookingManager
 from fastapi.responses import RedirectResponse
 from order import Order, OrderDetail
 from copy import deepcopy
+from starlette import status
 
 class WaterPark:
     def __init__(self):
@@ -24,6 +25,7 @@ class WaterPark:
 
     def get_member_list(self):
         return self.__member_list
+    
     def add_daily_stock(self, daily):
         self.__daily_stock_list.append(daily)    
         
@@ -108,14 +110,16 @@ class WaterPark:
         if not isinstance(booking, Booking):
             return "Error"
         order = booking.order
+        dailystock = self.search_daily_stock_from_date(order.visit_date)
+        if self.is_available(order, dailystock) == False:
+            return RedirectResponse('/Tem', status_code=404)
         transaction = PaymentTransaction(booking, order.total, deepcopy(self.__payment_list[payment_method]), datetime.now())
         self.add_transaction(transaction)
-        #show_payment/{transaction.transaction_id}
-        #print(transaction.id)
+        print(transaction.id)
         path = "bank" if payment_method==0 else "card"
-        return RedirectResponse(url=f'/show_payment/{transaction.id}/{path}', status_code=200)
+        return RedirectResponse(url=f'/show_payment/{transaction.id}/{path}', status_code=status.HTTP_302_FOUND)
 
-    def show_payment(self, transaction_id, method_type):
+    def show_payment(self, transaction_id):
         # info = {
         #     "account_no": "902138013"
         #     "paid_time" : "datetime"
@@ -127,34 +131,41 @@ class WaterPark:
             return RedirectResponse('/', status_code=404)
         return transaction.show_payment()
     
-    def cancel_payment(self, transaction_id, transaction: PaymentTransaction = None):
+    def cancel_payment(self, transaction_id):
+        transaction = self.search_transaction_from_id(transaction_id)
         if transaction == None :
-            transaction = self.search_transaction_from_id(transaction_id)
+            return RedirectResponse('/notfound', status_code=404)
         booking = transaction.booking
         self.delete_this_booking(booking)      # if customer has 1 booking --> delete cus
         self.delete_this_transaction(transaction)   
-        return RedirectResponse('/', status_code=200)
+        return RedirectResponse('/cancel', status_code=200)
     
     def paid_bill(self, transaction_id, info: dict):
         transaction = self.search_transaction_from_id(transaction_id)
         booking, payment_method = transaction.booking, transaction.payment_method
         customer, order = booking.customer, booking.order
-        if order.check_still_availabe() == False:
-            return self.cancel_payment(transaction_id, transaction)
-        order.reserve()
+        date = order.visit_date
+        dailystock = self.search_daily_stock_from_date(date)
+        if self.is_available(order, dailystock) == False:
+            return self.cancel_payment(transaction_id)
+        self.update_dailystock(order, dailystock)
         payment_method.pay(transaction, info)
         booking.update_status()
         booking_info = transaction.booking_to_pdf_info()
-        self.__finish_booking_manager.create_pdf(booking_info)
-        self.__finish_booking_manager.send_email(customer.email, customer.name, booking.id)
-        return RedirectResponse(url=f'/finish_booking/{transaction_id}', status_code=200)  
+        print(transaction.id)
+        #self.__finish_booking_manager.create_pdf(booking_info)
+        #self.__finish_booking_manager.send_email(customer.email, customer.name, booking.id)
+        return RedirectResponse(url=f'/finish_booking/{transaction.id}', status_code=303)  
     
     def show_finish_booking(self, transaction_id):
         transaction = self.search_transaction_from_id(transaction_id)
-        if not isinstance(transaction, PaymentTransaction) or transaction.status == False:
+        if not isinstance(transaction, PaymentTransaction):
+            print(transaction)
             return RedirectResponse('/pagenotfound', status_code=200)
+        if transaction.status == False:
+            return "hello"
         booking = transaction.booking
-        return self.__finish_booking_manager.show_finish_booking(booking.id)
+        return self.__finish_booking_manager.view_finish_booking(booking.id)
     
     def search_booking_from_id(self, id) -> Booking:   #search in customer&&member
         for member in self.__member_list:
@@ -171,10 +182,20 @@ class WaterPark:
     
     def search_transaction_from_id(self, id) -> PaymentTransaction:
         for transaction in self.__transaction_list:
+            print(transaction.id)
             if transaction.id == id:
                 return transaction
         return None
+    def is_available(self, order, dailystock):
+        for detail in order.order_detail:
+            if dailystock.is_available(detail.item, detail.amount) == False:
+                return False
+        return True
     
+    def update_dailystock(self, order, dailystock):
+        for detail in order.order_detail:
+            dailystock.update_item(detail.item, detail.amount)
+
     def add_transaction(self, transaction: PaymentTransaction):
         self.__transaction_list.append(transaction)
     def add_daily_stock(self, dailystock: DailyStock):
@@ -189,7 +210,7 @@ class WaterPark:
             return None
         self.__customer_list.remove(customer)
         return "Done"
-    
+
     def delete_this_transaction(self, transaction: PaymentTransaction):
         self.__transaction_list.remove(transaction)
         return "Done"
