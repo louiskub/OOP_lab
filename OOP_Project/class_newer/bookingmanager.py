@@ -14,7 +14,7 @@ class FinishBookingManager:
         self.__file_path = os.getcwd() + "\\booking\\"
         self.__sender_email = 'dkubwaterpark@gmail.com'
         self.__sender_password = 'jjqckufjkkbchyjs'
-
+    
     def create_qrcode(self, booking_id):
         qrcode = segno.make_qr(str(booking_id))
         qrcode_path = self.__file_path + str(booking_id) + ".png"

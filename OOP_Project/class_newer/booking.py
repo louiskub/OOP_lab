@@ -2,9 +2,9 @@ from service import Cabana, Ticket, Locker, Towel
 class Booking:
     __ID = 100000
 
-    def __init__(self, customer, order, booking_date):
+    def __init__(self, member_id, order, booking_date):
         self.__id = Booking.__ID
-        self.__customer = customer
+        self.__member_id = member_id
         self.__order = order
         self.__booking_date = booking_date
         self.__status = False
@@ -17,8 +17,8 @@ class Booking:
     def order(self):
         return self.__order
     @property
-    def customer(self):
-        return self.__customer
+    def member_id(self):
+        return self.__member_id
     @property
     def order_datetime(self):
         return self.__booking_date
@@ -30,7 +30,7 @@ class Booking:
     def to_dict(self):
         return {
             "booking_id": self.__id,
-            "customer": self.__customer.to_dict(),
+            "member_id": self.__member_id,
             "order": self.__order.to_dict(),
             "booking_date": self.__booking_date,
             "status": self.__status

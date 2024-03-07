@@ -17,56 +17,61 @@ class CardInput(BaseModel):
     card_pin: int
 class BankInput(BaseModel):
     account_no: int
+class CouponInput(BaseModel):
+    code: str
 
 waterpark = WaterPark()
 member = create_member()
-mem = member[0]
-print(mem.id)
 waterpark.add_member(member)
-print(waterpark.get_member_list())
-booking = create_booking(mem)
-mem.add_booking(booking)
-print(booking.id)
+mem = member[1]
+order = create_order(mem)
+#print(waterpark.get_member_list())
+#mem.add_booking(booking)
+print(mem.id)
+mem.order = order
 
 
-@app.get('/{member_id}/show_confirm/{booking_id}', tags=['show_confirm'])
-def show_confirm(member_id: str, booking_id: str):
-    return waterpark.show_condfirm(int(member_id), int(booking_id))
+# ---- apply coupon
+@app.put('/{member_id}/services', tags=['services'])
+def add_coupon(member_id, coupon_input: CouponInput):
+    return
 
-@app.post('/show_confirm/{booking_id}', tags=['show_confirm'])
-def going_to_payment(booking_id: str, payment_method: int):     #0=bank, 1=card  
-    return waterpark.selected_payment(int(booking_id), int(payment_method))
-    
-@app.get('/show_payment/{transaction_id}/bank', tags=['show_payment'])
-def show_payment(transaction_id):
-    return waterpark.show_payment(int(transaction_id))
-@app.get('/show_payment/{transaction_id}/card', tags=['show_payment'])
-def show_payment(transaction_id):
-    return waterpark.show_payment(int(transaction_id))
-# @app.post('/show_payment/{transaction_id}/card', tags=['show_payment'])
-# def show_payment(transaction_id):
-#     return waterpark.show_payment(int(transaction_id))
+
+
+# ---- show confirm 
+@app.get('/{member_id}/show_confirm', tags=['show_confirm'])
+def show_confirm(member_id: int):
+    return waterpark.show_confirm(member_id)
+
+@app.get('/{member_id}/show_payment/bank', tags=['show_payment'])
+def show_bank_payment(member_id: int):
+    return waterpark.show_payment(member_id, "bank")
+    #waterpark.show_payment(int(member_id), "bank")
+@app.get('/{member_id}/show_payment/card', tags=['show_payment'])
+def show_card_payment(member_id: int):
+    return waterpark.show_payment(member_id, "card")
 
 #กดออก
-@app.delete('/show_payment/{transaction_id}/bank', tags=['show_payment']) #delte tranasaction
-def delete_payment(transaction_id):
-    return waterpark.cancel_payment(int(transaction_id))
-@app.delete('/show_payment/{transaction_id}/card', tags=['show_payment']) #delte tranasaction
-def delete_payment(transaction_id):
-    return waterpark.cancel_payment(int(transaction_id))
+# @app.delete('/{member_id}/show_payment/bank', tags=['show_payment']) #delte tranasaction
+# def delete_payment(member_id: int):
+#     return waterpark.cancel_payment(int(member_id))
+# @app.delete('/{member_id}/show_payment/card', tags=['show_payment']) #delte tranasaction
+# def delete_payment(member_id: int):
+#     return waterpark.cancel_payment(int(member_id))
 
 #กดจ่ายตัง
-@app.put('/show_payment/{transaction_id}/bank', tags=['show_payment'])
-def paid(transaction_id, info: BankInput):
-    return waterpark.paid_bill(int(transaction_id), info)
-@app.put('/show_payment/{transaction_id}/card', tags=['show_payment'])
-def paid(transaction_id, info: CardInput):
-    return waterpark.paid_bill(int(transaction_id), info)
+@app.put('/{member_id}/show_payment/bank', tags=['show_payment'])
+def bank_paid(member_id: int, info: BankInput):
+    return waterpark.paid(member_id, info, 0)
+    
+@app.put('/{member_id}/show_payment/card', tags=['show_payment'])
+def card_paid(member_id: int, info: CardInput):
+    return waterpark.paid(member_id, info, 1)
 
-
-@app.get('/finish_booking/{transaction_id}', tags=['finish_booking'])
-def show_finish_booking(transaction_id):
-    return waterpark.show_finish_booking(int(transaction_id))
+# show pdf via file
+@app.get('/{member_id}/finish_booking/{booking_id}', tags=['finish_booking'])
+def show_finish_booking(member_id: int, booking_id: int):
+    return waterpark.show_finish_booking(int(member_id), int(booking_id))
 
 
 # # from fastapi.responses import RedirectResponse

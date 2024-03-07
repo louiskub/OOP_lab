@@ -25,7 +25,9 @@ class WaterPark:
 
     def get_member_list(self):
         return self.__member_list
-    
+    @property
+    def payment_list(self):
+        return self.__payment_list
     def add_daily_stock(self, daily):
         self.__daily_stock_list.append(daily)    
         
@@ -82,7 +84,7 @@ class WaterPark:
     
     def remove_item(self, item, order): # Press (-) button.
         return order.remove_item(item)
-    
+
     def become_member(self, name, email, phone_number, birthday, password):
         for member in self.__member_list:
             if email == member.email or phone_number == member.phone_number:
@@ -101,72 +103,57 @@ class WaterPark:
             member.verify_member(email, password)
         return 'Email or password is incorrect.'
     
-    def show_confirm(self, member_id, booking_id):
+    def show_confirm(self, member_id: int):
         member = self.search_member_from_id(member_id)
-        booking = self.search_booking_from_member(member, booking_id)
-    
-    def selected_payment(self, booking_id, payment_method: int):
-        booking = self.search_booking_from_id(booking_id)
-        if not isinstance(booking, Booking):
-            return "Error"
-        order = booking.order
-        dailystock = self.search_daily_stock_from_date(order.visit_date)
-        if self.is_available(order, dailystock) == False:
-            return RedirectResponse('/Tem', status_code=404)
-        transaction = PaymentTransaction(booking, order.total, deepcopy(self.__payment_list[payment_method]), datetime.now())
-        self.add_transaction(transaction)
-        print(transaction.id)
-        path = "bank" if payment_method==0 else "card"
-        return RedirectResponse(url=f'/show_payment/{transaction.id}/{path}', status_code=status.HTTP_302_FOUND)
+        if member.order == None:
+            return "No Order"
+        member.booking_temp = Booking(member_id, member.order, date.today())
+        return {
+            "member" : member.to_dict(),
+            "booking": member.booking_temp.to_dict()
+        }
 
-    def show_payment(self, transaction_id):
-        # info = {
-        #     "account_no": "902138013"
-        #     "paid_time" : "datetime"
-        # }
-        transaction = self.search_transaction_from_id(transaction_id)
-        if transaction == None :
-            return RedirectResponse('/pagenotfound', status_code=404)
-        if transaction.status == True:
-            return RedirectResponse('/', status_code=404)
-        return transaction.show_payment()
-    
-    def cancel_payment(self, transaction_id):
-        transaction = self.search_transaction_from_id(transaction_id)
-        if transaction == None :
-            return RedirectResponse('/notfound', status_code=404)
-        booking = transaction.booking
-        self.delete_this_booking(booking)      # if customer has 1 booking --> delete cus
-        self.delete_this_transaction(transaction)   
-        return RedirectResponse('/cancel', status_code=200)
-    
-    def paid_bill(self, transaction_id, info: dict):
-        transaction = self.search_transaction_from_id(transaction_id)
-        booking, payment_method = transaction.booking, transaction.payment_method
-        customer, order = booking.customer, booking.order
+    def show_payment(self, member_id: int, payment_method: str):
+        member = self.search_member_from_id(member_id)
+        booking = member.booking_temp
+        if booking == None:
+            return "No booking"
+        return {
+            "booking_id": booking.id,
+            "amount": str(booking.order.total),
+            "payment_method": payment_method
+        }
+    def paid(self, member_id: int, info, payment_method):
+        member = self.search_member_from_id(member_id)
+        booking = member.booking_temp
+        order = booking.order
         date = order.visit_date
         dailystock = self.search_daily_stock_from_date(date)
+        if booking == None:
+            return "booking not found"
         if self.is_available(order, dailystock) == False:
-            return self.cancel_payment(transaction_id)
+            member.booking_temp = None
+            member.order = None
+            return "delete success"
         self.update_dailystock(order, dailystock)
+        payment_method = deepcopy(self.payment_list[payment_method]) #bankpayment
+        transaction = PaymentTransaction(booking.id, booking.order.total)
         payment_method.pay(transaction, info)
         booking.update_status()
-        booking_info = transaction.booking_to_pdf_info()
-        print(transaction.id)
-        #self.__finish_booking_manager.create_pdf(booking_info)
-        #self.__finish_booking_manager.send_email(customer.email, customer.name, booking.id)
-        return RedirectResponse(url=f'/finish_booking/{transaction.id}', status_code=303)  
+        member.add_booking(booking)
+        booking_info = self.booking_to_pdf(member)
+        member.booking_temp, member.order = None, None
+        self.__finish_booking_manager.create_pdf(booking_info)
+        return "pay success"
     
-    def show_finish_booking(self, transaction_id):
-        transaction = self.search_transaction_from_id(transaction_id)
-        if not isinstance(transaction, PaymentTransaction):
-            print(transaction)
-            return RedirectResponse('/pagenotfound', status_code=200)
-        if transaction.status == False:
-            return "hello"
-        booking = transaction.booking
-        return self.__finish_booking_manager.view_finish_booking(booking.id)
-    
+    def show_finish_booking(self, member_id, booking_id):
+        member = self.search_member_from_id(member_id)
+        if member==None:
+            return "mem not found"
+        if self.search_booking_from_member(member, booking_id) == None:
+            return "booking not found"
+        return self.__finish_booking_manager.view_finish_booking(booking_id)
+
     def search_booking_from_id(self, id) -> Booking:   #search in customer&&member
         for member in self.__member_list:
             for booking in member.booking_list:
@@ -179,7 +166,7 @@ class WaterPark:
             if booking.id == booking_id:
                 return booking
         return None
-    
+
     def search_transaction_from_id(self, id) -> PaymentTransaction:
         for transaction in self.__transaction_list:
             print(transaction.id)
@@ -200,16 +187,9 @@ class WaterPark:
         self.__transaction_list.append(transaction)
     def add_daily_stock(self, dailystock: DailyStock):
         self.__daily_stock_list.append(dailystock)
-    def add_customer(self, customer: Customer):
-        self.__customer_list.append(customer)
     def add_member(self, member: Member):
         self.__member_list.extend(member)
 
-    def delete_this_customer(self, customer: Customer):
-        if not isinstance(customer, Customer):
-            return None
-        self.__customer_list.remove(customer)
-        return "Done"
 
     def delete_this_transaction(self, transaction: PaymentTransaction):
         self.__transaction_list.remove(transaction)
@@ -224,9 +204,35 @@ class WaterPark:
     
     def get_member_list(self):
         return self.__member_list
+    
+    def booking_to_pdf(self, member):
+        booking = member.booking_temp
+        order = booking.order
+        return {
+            "Customer": {
+                "Name": member.name,
+                "Email": member.email,
+                "Phone Number": str(member.phone_no)
+            },
+            "Booking": {
+                "Booking Id": booking.id,
+                "Date Of Order": booking.order_datetime.strftime("%d %B %Y"),
+                "Payment Status": "PAID"
+            },
+            "Order": {
+                "Date Of Visit": order.visit_date.strftime("%d %B %Y"),
+                "Total" : order.total,
+                "Order Detail": order.to_pdf()
+            }
+    }
+
+
+
+
+
 def create_member():
     return [ Member("James", "james123@gmail.com", "0812345678", date(2001,2,14), "12xncvbj34")
-    ,Member("Yuji", "yuji1234@gmail.com", "0823456789", date(2002,1,3), "1xbv3z234")
+    ,Member("Yuji", "66010660@kmitl.ac.th", "0823456789", date(2002,1,3), "1xbv3z234")
     ,Member("Irene", "irene123@gmail.com", "0834567890", date(2003,4,2), "jdies234")
     ,Member("Charlotte", "charlotte@gmail.com", "0845678901", date(2004,1,4), "w.sa12sm.34")
     ,Member("Sharon", "sharon12@gmail.com", "0856789012", date(1998,12,1), "1ksl23aqo4")
@@ -320,7 +326,7 @@ def create_daily_stock():
         lst.append(DailyStock(today + timedelta(days=i)))
     return lst
 
-def create_booking(member):
+def create_order(member):
     t = Ticket('Full Day', 1, 699)
     c = Cabana('W01', 'S', 'Wave Pool')
     order = Order(date.today()+ timedelta(days=3))
@@ -329,9 +335,9 @@ def create_booking(member):
     order.add_item(c)
     order.add_item(c)
     c = create_member()
-    booking = Booking(member, order, date.today())
+    #booking = Booking(member.id, order, date.today())
     #print(booking.to_dict())
-    return booking
+    return order
 
 def constructor():
     dkub = WaterPark()
@@ -354,9 +360,9 @@ def constructor():
     dkub.remove_item(towel, my_order)
 
 
-    customer_list = create_customer()
-    [dkub.add_customer(customer) for customer in customer_list]
-    return (dkub, customer_list)
+    # customer_list = create_customer()
+    # [dkub.add_customer(customer) for customer in customer_list]
+    # return (dkub, customer_list)
 # constructor()
 
 # if '__main__' == __name__ :

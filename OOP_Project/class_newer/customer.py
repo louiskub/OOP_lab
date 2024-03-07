@@ -35,7 +35,7 @@ class Customer:
         return is_valid_phone_no            
 
 class Member:
-    __ID = 1
+    __ID = 100000
     def __init__(self, name, email, phone_no, birthday, password):
         self.__name = name
         self.__email = email
@@ -43,6 +43,8 @@ class Member:
         self.__birthday = birthday
         self.__password = password
         self.__phone_no = phone_no
+        self.__order = None
+        self.__booing_temp = None
         self.__booking_list = []
         Member.__ID += 1
 
@@ -60,8 +62,20 @@ class Member:
         return self.__phone_no
     @property
     def booking_list(self):
-        return self.__booking_list      
-    
+        return self.__booking_list     
+    @property
+    def order(self):
+        return self.__order 
+    @order.setter
+    def order(self, order):
+        self.__order = order
+    @property
+    def booking_temp(self):
+        return self.__booing_temp
+    @booking_temp.setter
+    def booking_temp(self, booking: Booking):
+        self.__booing_temp = booking
+
     def check_email(email):
         try:
             validate_email(email)
@@ -82,7 +96,6 @@ class Member:
             "phone_no": self.__phone_no,
             "booking_list": self.__booking_list
         }
-    
     def add_booking(self, booking: Booking):
         if not isinstance(booking, Booking):
             return None

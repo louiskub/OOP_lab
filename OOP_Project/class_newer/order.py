@@ -21,6 +21,7 @@ class Order:
         for items in self.__order_detail:
             total += items.total_price
         self.__total = total
+        
         return self.__total
     
     def to_dict(self):
