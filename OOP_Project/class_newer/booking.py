@@ -20,9 +20,11 @@ class Booking:
     def member_id(self):
         return self.__member_id
     @property
-    def order_datetime(self):
+    def booking_date(self):
         return self.__booking_date
-
+    @booking_date.setter
+    def booking_date(self, date):
+        self.__booking_date = date
     def update_status(self):
         self.__status = True
         return "Done"

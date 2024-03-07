@@ -29,10 +29,6 @@ class WaterPark:
     def get_zone(self):
         return self.__zone_list
     
-    @property
-    def payment_list(self):
-        return self.__payment_list
-    
     def add_daily_stock(self, daily):
         self.__daily_stock_list.append(daily)    
         
@@ -139,11 +135,19 @@ class WaterPark:
         member = self.search_member_from_id(member_id)
         if member.order == None:
             return "No Order"
+        if member.booking_temp != None :
+            if member.order == member.booking_temp.order:
+                member.booking_temp.booking_date = date.today()
+                return {
+                    "member" : member.to_dict(),
+                    "booking": member.booking_temp.to_dict()
+                }
         member.booking_temp = Booking(member_id, member.order, date.today())
         return {
-            "member" : member.to_dict(),
-            "booking": member.booking_temp.to_dict()
-        }
+                "member" : member.to_dict(),
+                "booking": member.booking_temp.to_dict()
+            }
+        
 
     def show_payment(self, member_id: int, payment_method: str):
         member = self.search_member_from_id(member_id)
@@ -169,7 +173,7 @@ class WaterPark:
             member.order = None
             return "delete success"
         self.update_dailystock(order, dailystock)
-        payment_method = deepcopy(self.payment_list[payment_method]) #bankpayment
+        payment_method = deepcopy(self.__payment_list[payment_method]) #bankpayment
         transaction = PaymentTransaction(booking.id, booking.order.total)
         payment_method.pay(transaction, info)
         self.add_transaction(transaction)
@@ -246,12 +250,13 @@ class WaterPark:
             },
             "Booking": {
                 "Booking Id": booking.id,
-                "Date Of Order": booking.order_datetime.strftime("%d %B %Y"),
+                "Date Of Order": booking.booking_date.strftime("%d %B %Y"),
                 "Payment Status": "PAID"
             },
             "Order": {
                 "Date Of Visit": order.visit_date.strftime("%d %B %Y"),
                 "Total" : order.total,
+                "Discount": order.cal_discount(),
                 "Order Detail": order.to_pdf()
             }
     }
@@ -264,10 +269,10 @@ def create_promotion():
         AmountCoupon(date.today()-timedelta(days=5) ,date.today()+timedelta(days=4) , "O1KSXG0X" , 300, 1000),
         AmountCoupon(date.today()-timedelta(days=10) ,date.today()+timedelta(days=5) , "QLC6EBTS" , 350, 2000),
         AmountCoupon(date.today()+timedelta(days=20) ,date.today()-timedelta(days=7) , "VBH7P77F" , 300, 2000),
-        PercentCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "DU4LY3HV" , 10),
-        PercentCoupon(date.today()-timedelta(days=5) ,date.today()+timedelta(days=4) , "IV3WLCHW" , 15),
-        PercentCoupon(date.today()-timedelta(days=10) ,date.today()+timedelta(days=5) , "VROPTVOJ" , 20, 2500),
-        PercentCoupon(date.today()+timedelta(days=20) ,date.today()-timedelta(days=7) , "UCJHSTWQ" , 30)
+        PercentCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "DU4LY3HV" , 0.1),
+        PercentCoupon(date.today()-timedelta(days=5) ,date.today()+timedelta(days=4) , "IV3WLCHW" , 0.15),
+        PercentCoupon(date.today()-timedelta(days=10) ,date.today()+timedelta(days=5) , "VROPTVOJ" , 0.2, 2500),
+        PercentCoupon(date.today()+timedelta(days=20) ,date.today()-timedelta(days=7) , "UCJHSTWQ" , 0.3)
     ]
 def create_member():
     return [ 
