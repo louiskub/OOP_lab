@@ -1,4 +1,5 @@
 from booking import Booking
+from order import Order
 from datetime import datetime
 from email_validator import validate_email, EmailNotValidError
 import re
@@ -118,3 +119,11 @@ class Member:
     def verify_member(self, email, password):
         if email == self.email and password == self.__password:
             return self
+        
+
+    def get_order_from_visit_date(self, date):
+        if self.__order != None and date == self.__order.visit_date:
+            return self.__order
+        order = Order(date)
+        self.__order = order
+        return order

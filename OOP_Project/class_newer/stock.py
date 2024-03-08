@@ -9,6 +9,7 @@ class Stock:
         self.__locker_list = Stock.create_locker()
         self.__ticket_list = Stock.create_ticket()
         self.__towel = Towel()
+
     @property
     def cabana_list(self):
         return self.__cabana_list
@@ -21,17 +22,13 @@ class Stock:
     @property
     def towel(self):
         return self.__towel
-    @property
-    def towel_price(self):
-        return self.__towel
     
-    def show_cabana(self):
-        return self.__cabana_list
     def create_locker():
         locker_list = []
         locker_list.append(Locker('M', 80)) # Locker
         locker_list.append(Locker('L', 20))
         return locker_list
+    
     def create_cabana():
         wave_pool_zone = []
         wave_pool_zone.append(Cabana('W01', 'S', 'Wave Pool')) # Wave Pool Zone
@@ -83,6 +80,7 @@ class Stock:
         cabana_list = []
         cabana_list.extend([wave_pool_zone, activity_relax_zone, hill_zone, family_zone])
         return cabana_list
+    
     def create_ticket():
         ticket_list = []
         
@@ -102,25 +100,25 @@ class Stock:
     def add_cabana(self, cabana):
         if isinstance(cabana, Cabana):
             self.__cabana_list.append(cabana)
-        else: return 'Error'        
+        else: return 'Error'  
+
     def add_locker(self, locker):
         if isinstance(locker, Locker):
             self.__locker_list.append(locker)
-        else: return 'Error'        
+        else: return 'Error'  
+
     def add_ticket(self, ticket):
         if isinstance(ticket, Ticket):
             self.__ticket_list.append(ticket)
         else: return 'Error'
-    def show_all(self):
-        pass 
+
     def get_cabana_in_zone(self, cabana_zone):
         for zone in range (len(self.__cabana_list)):
-            for cabana in range (len(self.__cabana_list[zone])):
-                if cabana_zone == self.__cabana_list[zone][cabana].zone:
+            for cabana in self.__cabana_list[zone]:
+                if cabana_zone == cabana.zone:
                     return self.__cabana_list[zone]
-                cabana_zone += 1        
+                zone += 1        
         return None
-
 
 class DailyStock(Stock):
     def __init__(self, date):
@@ -132,11 +130,33 @@ class DailyStock(Stock):
     def date(self):
         return self.__date
     
-        cabana_list = []
-        for cabana in self.cabana_list:
-            if cabana.is_reserve == False:
-                cabana_list.append(cabana)
-        return cabana_list
+    def update_item(self, item, amount):
+        if isinstance(item, Cabana):
+            item.update_status('R')
+        elif not isinstance(item, Ticket):
+            item.update_status('R', amount)
+
+    def is_available(self, item, amount):
+        if isinstance(item, Cabana):
+            return not item.is_reserve # If reserved = Not available
+        elif not isinstance(item, Ticket):
+            return item.remaining_amount >= amount
+        return True
+    
+    def get_cabana_in_zone(self, cabana_zone):
+        for zone in range (len(self.cabana_list)):
+            for cabana in self.cabana_list[zone]:
+                if cabana_zone == cabana.zone:
+                    return self.cabana_list[zone]
+                zone += 1        
+        return None
+
+def create_daily_stock():
+    daily_list = []
+    for i in range(60):
+        daily_list.append(DailyStock(date.today + timedelta(days=i)))
+    return daily_list
+
     # def reserve(self, order: Order):
     #     if not isinstance(order, Order):
     #         return None
@@ -154,21 +174,3 @@ class DailyStock(Stock):
     #             elif each_order[0].size == 'L' and each_order[1] <= self.get_remaining_large_locker():
     #                 self.__towel_reserved += each_order[1]
     #     return "Done"
-    
-    def update_item(self, item, amount):
-        if isinstance(item, Cabana):
-            item.update_status('R')
-        elif not isinstance(item, Ticket):
-            item.update_status('R', amount)
-    def is_available(self, item, amount):
-        if isinstance(item, Cabana):
-            return not item.is_reserve # If reserved = Not available
-        elif not isinstance(item, Ticket):
-            return item.remaining_amount >= amount
-        return True
-    
-def create_daily_stock():
-    daily_list = []
-    for i in range(60):
-        daily_list.append(DailyStock(date.today + timedelta(days=i)))
-    return daily_list

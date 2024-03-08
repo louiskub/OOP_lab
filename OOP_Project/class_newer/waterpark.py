@@ -2,7 +2,7 @@ from booking import Booking
 from stock import DailyStock, Stock
 from service import Ticket, Cabana, Locker, Towel
 from datetime import datetime, timedelta, date
-from customer import Customer, Member
+from member import  Member
 from payment import Payment, BankPayment, CardPayment, PaymentTransaction
 from bookingmanager import FinishBookingManager
 from order import Order, OrderDetail
@@ -16,7 +16,6 @@ class WaterPark:
         self.__stock = Stock()
         self.__daily_stock_list = create_daily_stock()
         self.__zone_list = ['Wave Pool', 'Activity and Relax', 'Hill', 'Family']
-        self.__customer_list = []
         self.__member_list = []
         self.__promotion_list = []
         self.__payment_list = [BankPayment(), CardPayment()]
@@ -26,6 +25,23 @@ class WaterPark:
     def get_member_list(self):
         return self.__member_list
     
+    def get_stock(self):
+        return self.__stock
+    
+    def get_zone_list(self):
+        return self.__zone_list
+    
+    def get_daily_stock_list(self):
+        return self.__daily_stock_list
+        
+    def add_daily_stock(self, daily):
+        self.__daily_stock_list.append(daily)    
+        
+    def add_member(self, member):
+        if isinstance(member, Member):
+            self.__member_list.append(member)
+        else: return 'Error' 
+
     def get_zone(self):
         return self.__zone_list
     
@@ -75,39 +91,44 @@ class WaterPark:
     
     def find_item(self, daily_stock, item: dict):
         item = item.dict()
-        if item['name'] == 'cabana':
-            for cabana in daily_stock.get_cabana_in_zone(item['zone']):
-                if item['id'] == cabana.id:
-                    return cabana
-        elif item['name'] == 'locker':
-            for locker in daily_stock.locker_list:
-                if locker.size == item['size']:
-                    return locker
-        elif item['name'] == 'ticket':
-            for ticket in daily_stock.ticket_list:
-                if ticket.type == item['type']:
-                    return ticket
-        elif item['name'] == 'towel':
-            return daily_stock.towel
+        if item['name'] != None :
+            if item['name'] == 'cabana':
+                for cabana in daily_stock.get_cabana_in_zone(item['zone']):
+                    if item['id'] == cabana.id and item['id'] != None:
+                        return cabana
+                return None
+            elif item['name'] == 'locker':
+                for locker in daily_stock.locker_list:
+                    if locker.size == item['size'] and item['size'] != None:
+                        return locker
+                return None
+            elif item['name'] == 'ticket':
+                for ticket in daily_stock.ticket_list:
+                    if ticket.type == item['type'] and item['type'] != None:
+                        return ticket
+                return None
+            elif item['name'] == 'towel':
+                return daily_stock.towel
+            return None
         return None
     
     def manage_order(self, member_id: int, date: str, items, type): # type A = Add, R = Reduce
         selected_date = self.format_str_to_date(date)
         member = self.search_member_from_id(member_id)
-        if selected_date != None:
-            if member != None:
-                order = member.get_order_from_visit_date(selected_date)
-                daily_stock = self.search_daily_stock_from_date(selected_date)
-                item = self.find_item(daily_stock, items)
-                if item != None:
-                    if type == 'A' and daily_stock.is_available(item, 1): # Press (+) button.
-                        return order.add_item(item)
-                    elif type == 'R': # Press (-) button.
-                        return order.reduce_item(item)
-                    return 'Invalid type. Please choose A(Add) or R(Reduce).'
-                return 'Invalid item.'
+        if selected_date == None:
+            return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
+        if member == None:
             return 'Invalid member id.'
-        return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
+        order = member.get_order_from_visit_date(selected_date)
+        daily_stock = self.search_daily_stock_from_date(selected_date)
+        item = self.find_item(daily_stock, items)
+        if item != None:
+            if type == 'A' and daily_stock.is_available(item, 1): # Press (+) button.
+                return order.add_item(item)
+            elif type == 'R': # Press (-) button.
+                return order.reduce_item(item)
+            return 'Invalid type. Please choose A(Add) or R(Reduce).'
+        return 'Invalid item.'
 
     def become_member(self, name, email, phone_number, birthday, password):
         for member in self.__member_list:
@@ -130,7 +151,20 @@ class WaterPark:
 
     #def apply_code(self, member_id: int):
 
-
+    def add_coupon(self, member_id, info):
+        info = info.dict()
+        member = self.search_member_from_id(member_id)
+        # if info["is_delete"] == 1 : 
+        #     member.order.promotion = None
+        #     return "delete coupon in order"
+        coupon = self.search_promotion_from_code(info["code"].upper())
+        order = member.order
+        if coupon == None: return "coupon not found"
+        if coupon.is_expired() == True : return "coupon Expired"
+        if coupon.min_purchase > order.cal_price() : return "not enough total"
+        order.promotion = coupon
+        return "coupon used" # order.to_dict()
+    
     def show_confirm(self, member_id: int):
         member = self.search_member_from_id(member_id)
         if member.order == None:
@@ -162,6 +196,7 @@ class WaterPark:
     
     def paid(self, member_id: int, info, payment_method):
         member = self.search_member_from_id(member_id)
+        if member == None : return "no member"
         booking = member.booking_temp
         order = booking.order
         date = order.visit_date
@@ -260,7 +295,7 @@ class WaterPark:
                 "Order Detail": order.to_pdf()
             }
     }
-
+    
 
 
 def create_promotion():

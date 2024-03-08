@@ -92,15 +92,18 @@ class FinishBookingManager:
         ])
         table.setStyle(style)
         table.wrapOn(c, 0, 0)
-        table.drawOn(c, 50, 558 - row_height * len(table_detail))
+        table.drawOn(c, 50, 576 - row_height * len(table_detail))
 
         c.setFont("Helvetica", 16)
-        table_detail2 = [["TOTAL : ", "THB "+ str(order["Total"])]]
+        table_detail2 = [
+                        ["DISCOUNT :", "- "+ str(order["Discount"])]
+                        ,["TOTAL : ", "THB "+ str(order["Total"])]
+                        ]
+                        
         table2 = Table(table_detail2, colWidths=[420, 75])
         style2 = TableStyle([
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
-            ('ALIGN', (0, 0), (-1, 0), 'RIGHT')
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT')
         ])
         table2.setStyle(style2)
         table2.wrapOn(c, 0, 0)
@@ -164,13 +167,14 @@ if '__main__' == __name__ :
             "Phone Number": "0887826930"
         },
         "Booking": {
-            "Booking Id": "12398798y219",
+            "Booking Id": "1239879219",
             "Date Of Order": "22/10/2024",
             "Payment Status": "PAID"
         },
         "Order": {
             "Date Of Visit": "22/11/2024",
-            "Total" : 300,
+            "Total" : 800,
+            "Discount": 300,
             "Order Detail": [
                 {
                     "Item Name": "Cabana Zone2 Id9",
@@ -194,4 +198,4 @@ if '__main__' == __name__ :
         }
     }
     f.create_pdf(info)
-    f.send_email(info["Customer"]["Email"], info["Customer"]["Name"], info["Booking"]["Booking Id"])
+    #f.send_email(info["Customer"]["Email"], info["Customer"]["Name"], info["Booking"]["Booking Id"])

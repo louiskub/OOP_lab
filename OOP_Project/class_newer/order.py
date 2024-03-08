@@ -8,22 +8,24 @@ class Order:
         self.__promotion = None
     
     def __str__(self):
-        return f"{[order for order in self.__order_detail]}\nTOTAL: {self.__total}"
+        return f"{[order for order in self.__order_detail]}\nTOTAL: {self.__total} THB"
+
     @property
     def visit_date(self):
         return self.__visit_date
+
     @property
     def order_detail(self):
         return self.__order_detail
+    
     @property
     def total(self):
-        price = self.cal_price() 
-        discount = self.cal_discount()
-        self.__total = price - discount
         return self.__total
+        
     @property
     def promotion(self):
         return self.__promotion
+    
     @promotion.setter
     def promotion(self, promotion):
         self.__promotion = promotion
@@ -35,22 +37,30 @@ class Order:
         return total
     
     def cal_discount(self):
-        if self.promotion == None : return 0
+        if self.promotion == None: 
+            return 0
         total = self.cal_price()
         if self.promotion.is_expired() or self.promotion.min_purchase > total :
             self.promotion = None
             return 0
         return self.promotion.get_discount(total)
     
+    def cal_total(self):
+        self.__total = self.cal_price() - self.cal_discount()
+        return self.__total
+    
     def to_dict(self):
+        self.cal_total()
         return {
             "visit_date": self.__visit_date,
             "order_detail": [detail.to_dict() for detail in self.__order_detail],
-            "total": self.total,
+            "total": self.__total,
             "discount": self.cal_discount()
         }
+    
     def to_pdf(self):
         return [detail.to_dict() for detail in self.__order_detail]
+    
     def add_item(self, item) : # Press the add button
         if isinstance(item, Cabana):
             for items in self.__order_detail:
@@ -60,16 +70,19 @@ class Order:
             for items in self.__order_detail:
                 if items.item == item:
                     items + 1
+                    self.cal_total()
                     return self
-        self.__order_detail.append(OrderDetail(item))         
+        self.__order_detail.append(OrderDetail(item)) 
+        self.cal_total()        
         return self
     
-    def remove_item(self, item) : # Press the reduce button
+    def reduce_item(self, item) : # Press the reduce button
         for items in self.__order_detail:
             if item == items.item:
                 items - 1
                 if items.amount == 0:
                     self.__order_detail.remove(items)
+                self.cal_total()
                 return self
         return self
 
@@ -107,7 +120,7 @@ class OrderDetail:
     def __init__(self, item):
         self.__item = item #instance of Locker, Cabana, Ticket
         self.__amount = 1
-        self.__total_price = 0
+        self.__total_price = self.__item.price
 
     @property
     def item(self):
@@ -117,18 +130,23 @@ class OrderDetail:
         return self.__amount
     @property
     def total_price(self):
-        return self.__item.price * self.__amount
+        return self.__total_price
+    
     def __str__(self):
         return f"{self.item} x {self.__amount} = {self.total_price} THB"
     
-    def __add__(self, amount):
+    def __add__(self, amount = 1):
         if 0 < amount:
-            self.__amount += 1
+            self.__amount += amount
+            self.cal_total_price()
         
-    def __sub__(self, amount):
+    def __sub__(self, amount = 1):
         if 0 < amount <= self.__amount:
-            self.__amount -= amount 
+            self.__amount -= amount
+            self.cal_total_price()
         
+    def cal_total_price(self):
+        self.__total_price = self.__item.price * self.__amount    
 
     def to_dict(self):
         return {
