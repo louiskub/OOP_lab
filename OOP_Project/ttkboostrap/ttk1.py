@@ -138,7 +138,7 @@ def get_order_detail_total(member_id):
 
     # สร้าง Label สำหรับแสดงข้อมูล
 Contact_Detail = ttk.Label(frame_home, text = "Contact Detail", font=("Helvetica",18), bootstyle="info")
-Contact_Detail.pack(pady=10)
+Contact_Detail.grid(pady=10)
 
 Contact_Detail_Frame = ttk.Frame(frame_home, bootstyle="light")
 Contact_Detail_Frame.pack(pady=10)

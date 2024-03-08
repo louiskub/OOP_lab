@@ -16,7 +16,7 @@ class WaterPark:
         self.__stock = Stock()
         self.__daily_stock_list = create_daily_stock()
         self.__zone_list = ['Wave Pool', 'Activity and Relax', 'Hill', 'Family']
-        self.__member_list = []
+        self.__member_list = create_member()
         self.__promotion_list = []
         self.__payment_list = [BankPayment(), CardPayment()]
         self.__transaction_list = []
@@ -52,7 +52,15 @@ class WaterPark:
         if isinstance(member, Member):
             self.__member_list.append(member)
         else: return 'Error'     
-        
+    
+    def login_member(self, email, password):
+        for member in self.__member_list:
+            if member.verify_member(email,password) != None:
+                    return "Login successful"
+            # else:
+            #         return "Incorrect password"
+        return "Email/Password not found or incorrect"  
+
     def search_member_from_id(self, id):
         for member in self.__member_list:
             if id == member.id:
@@ -132,7 +140,7 @@ class WaterPark:
 
     def become_member(self, name, email, phone_number, birthday, password):
         for member in self.__member_list:
-            if email == member.email or phone_number == member.phone_number:
+            if email == member.email or phone_number == member.phone_no:
                 return 'You are already a member.' 
         if Member.check_email(email):
             if Member.check_phone_number(phone_number) and len(phone_number) == 10:
@@ -151,12 +159,15 @@ class WaterPark:
 
     #def apply_code(self, member_id: int):
 
-    def add_coupon(self, member_id, info):
+    def add_coupon(self, member_id, date, info):
         info = info.dict()
         member = self.search_member_from_id(member_id)
-        # if info["is_delete"] == 1 : 
-        #     member.order.promotion = None
-        #     return "delete coupon in order"
+        date = self.format_str_to_date(self, date)
+        if date == None : 
+            return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
+        if member.order.visit_date != date : 
+            return "Invalid order date"
+        
         coupon = self.search_promotion_from_code(info["code"].upper())
         order = member.order
         if coupon == None: return "coupon not found"
@@ -268,7 +279,7 @@ class WaterPark:
     def add_daily_stock(self, dailystock: DailyStock):
         self.__daily_stock_list.append(dailystock)
     def add_member(self, member: Member):
-        self.__member_list.extend(member)
+        self.__member_list.append(member)
     def add_promotion(self, promotion: Promotion):
         self.__promotion_list.extend(promotion)    
     def get_member_list(self):

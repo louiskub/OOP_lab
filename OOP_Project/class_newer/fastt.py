@@ -22,7 +22,7 @@ class BankInput(BaseModel):
 class CouponInput(BaseModel):
     code: str | None = None
 
-class add_mem(BaseModel):
+class AddMember(BaseModel):
     name: str
     email:str
     phone_no:str
@@ -30,12 +30,12 @@ class add_mem(BaseModel):
     password:str
     
 """log_in"""    
-class log_in(BaseModel):
+class Login(BaseModel):
     email:str
     password:str
     
 # Add and Reduce item
-class item(BaseModel):
+class Item(BaseModel):
     name: str
     size: str | None = None
     type: str | None = None
@@ -45,7 +45,7 @@ class item(BaseModel):
 system = WaterPark()
 member = create_member()
 promotion = create_promotion()
-system.add_member(member)
+#system.add_member(member)
 system.add_promotion(promotion)
 mem = member[1]
 order = create_order()
@@ -55,15 +55,17 @@ print(mem.id)
 mem.order = order
 
 
+"""becom_member"""
+@app.post("/subscription", tags = ['Subscription']) #เพิ่ม Member ใหม่เข้าสู่ระบบ(สมัครmember)
+async def add_member(member: AddMember) :
+    return {"Result": system.become_member(member.name, member.email, member.phone_no, member.birthday, member.password)}
 
+"""log_in"""   
+@app.post("/login", tags = ['Login']) #login เข้าสู่ระบบ โดยถ้าอีเมลกับรหัส๔ูกจะ responseกลับว่า 'Login successful'
+async def login(login: Login) :
+    return {"Result": system.login_member(login.email, login.password)}
 
-
-
-
-
-
-
-
+""""""
 @app.get("/{member_id}/services", tags = ['Services'])
 async def show_all_services():
     return {"Services": system.get_services_in_stock(system.get_stock())}
@@ -77,18 +79,18 @@ def show_services_in_date( date: str):
 
 # POST-- > Add item to order.
 @app.post("/{member_id}/services/{date}", tags=['Services'])
-async def add_order(member_id: int, date: str, item: item):
+async def add_order(member_id: int, date: str, item: Item):
     return system.manage_order(member_id, date, item, 'A')
 
 # DELETE-- > Remove item from order.
 @app.delete("/{member_id}/services/{date}", tags=['Services'])
-async def add_order(member_id: int, date: str, item: item):
+async def add_order(member_id: int, date: str, item: Item):
     return system.manage_order(member_id, date, item, 'R')
 
 # ---- apply coupon --> retotal
 @app.put('/{member_id}/services/{date}', tags=['Services'])
-def add_coupon(member_id: int, info: CouponInput):
-    return system.add_coupon(member_id, info)
+def add_coupon(member_id: int, date: str, info: CouponInput):
+    return system.add_coupon(member_id, date, info)
 
 
 # ---- show confirm 

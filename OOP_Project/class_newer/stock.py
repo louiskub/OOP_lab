@@ -77,8 +77,7 @@ class Stock:
         family_zone.append(Cabana('K06', 'M', 'Family'))
         family_zone.append(Cabana('K07', 'S', 'Family'))
         
-        cabana_list = []
-        cabana_list.extend([wave_pool_zone, activity_relax_zone, hill_zone, family_zone])
+        cabana_list = [wave_pool_zone, activity_relax_zone, hill_zone, family_zone]
         return cabana_list
     
     def create_ticket():
