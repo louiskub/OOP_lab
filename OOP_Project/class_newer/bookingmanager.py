@@ -152,7 +152,7 @@ you will receive wristbands for entry to our park."
         print(file_name)
         file_path = self.__file_path + file_name
         if not os.path.exists(file_path):
-            return RedirectResponse('/pagenotfound', status_code=200)
+            return "booking not found"
         headers = {
                 "Content-Disposition": "inline;"
         } 

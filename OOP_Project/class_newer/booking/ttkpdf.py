@@ -39,8 +39,8 @@ class FileDownloaderApp:
 
             tk.messagebox.showinfo("Success", f"File downloaded successfully to:\n{save_path}")
 
-        except requests.RequestException as e:
-            tk.messagebox.showerror("Error", f"Failed to download file.\nError: {e}")
+        except requests.RequestException as error:
+            tk.messagebox.showerror("Error", f"Failed to download file.\nError: {error}")
 
         finally:
             self.progressbar.stop()

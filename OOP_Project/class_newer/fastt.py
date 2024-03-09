@@ -115,7 +115,11 @@ def card_paid(member_id: int, info: CardInput):
     return system.paid(member_id, info, 1)
 
 
-
+@app.get('/{member_id}/payment_success/{booking_id}', tags = ['finish_booking'])
+def payment_success(member_id: int, booking_id: int):
+    return {
+        "Hello": "World"
+    }
 
 #download pdf via file
 @app.get('/{member_id}/finish_booking/{booking_id}', tags = ['finish_booking'])
@@ -123,9 +127,10 @@ def show_finish_booking(member_id: int, booking_id: int):
     from bookingmanager import FinishBookingManager
     f = FinishBookingManager()
     return f.view_finish_booking(booking_id)
+
     #return system.show_finish_booking(int(member_id), int(booking_id))
 
-
+# http://127.0.0.1:8000/100/finish_booking/100000
 # # from fastapi.responses import RedirectResponse
 # # import uvicorn
 
