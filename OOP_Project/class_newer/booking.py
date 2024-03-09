@@ -1,4 +1,3 @@
-from service import Cabana, Ticket, Locker, Towel
 class Booking:
     __ID = 100000
 
@@ -13,18 +12,23 @@ class Booking:
     @property
     def id(self):
         return self.__id
+    
     @property
     def order(self):
         return self.__order
+    
     @property
     def member_id(self):
         return self.__member_id
+    
     @property
     def booking_date(self):
         return self.__booking_date
+    
     @booking_date.setter
     def booking_date(self, date):
         self.__booking_date = date
+
     def update_status(self):
         self.__status = True
         return "Done"
@@ -37,7 +41,3 @@ class Booking:
             "booking_date": self.__booking_date,
             "status": self.__status
         }
-    def get_booking_detail(self):
-        order = self.__order
-        customer = self.__customer
-        return {"detail": order, "customer": [customer.name, customer.email]}

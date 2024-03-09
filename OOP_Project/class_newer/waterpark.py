@@ -1,165 +1,197 @@
 from booking import Booking
 from stock import DailyStock, Stock
-from service import Ticket, Cabana, Locker, Towel
-from datetime import datetime, timedelta, date
+from service import Ticket, Cabana, Locker
+from datetime import timedelta, date
 from member import  Member
-from payment import Payment, BankPayment, CardPayment, PaymentTransaction
+from payment import BankPayment, CardPayment, PaymentTransaction
 from bookingmanager import FinishBookingManager
-from order import Order, OrderDetail
+from order import Order
 from promotion import Promotion, AmountCoupon, PercentCoupon
 from copy import deepcopy
-from starlette import status
+#from starlette import status
 
 class WaterPark:
     def __init__(self):
-        self.__name = "rama"
+        self.__name = "Rama"
         self.__stock = Stock()
         self.__daily_stock_list = create_daily_stock()
-        self.__zone_list = ['Wave Pool', 'Activity and Relax', 'Hill', 'Family']
+        self.__zone_list = ["Wave Pool", "Activity and Relax", "Hill", "Family"]
         self.__member_list = create_member()
         self.__promotion_list = []
         self.__payment_list = [BankPayment(), CardPayment()]
         self.__transaction_list = []
         self.__finish_booking_manager = FinishBookingManager()
 
-    def get_member_list(self):
-        return self.__member_list
+    # Get information of system.
+    def get_zone(self):
+        return self.__zone_list
     
     def get_stock(self):
         return self.__stock
     
     def get_zone_list(self):
         return self.__zone_list
-    
-    def get_daily_stock_list(self):
-        return self.__daily_stock_list
-        
+
+    # Add information to system.    
     def add_daily_stock(self, daily):
-        self.__daily_stock_list.append(daily)    
+        if isinstance(daily, DailyStock):
+            self.__daily_stock_list.append(daily)   
+        else: return "Error"  
         
     def add_member(self, member):
         if isinstance(member, Member):
             self.__member_list.append(member)
-        else: return 'Error' 
+        else: return "Error"      
 
-    def get_zone(self):
-        return self.__zone_list
-    
-    def add_daily_stock(self, daily):
-        self.__daily_stock_list.append(daily)    
-        
-    def add_member(self, member):
-        if isinstance(member, Member):
-            self.__member_list.append(member)
-        else: return 'Error'     
-    
-    def login_member(self, email, password):
-        for member in self.__member_list:
-            if member.verify_member(email,password) != None:
-                    return "Login successful"
-            # else:
-            #         return "Incorrect password"
-        return "Email/Password not found or incorrect"  
+    def add_promotion(self, promotion):
+        if isinstance(promotion, Promotion):
+            self.__promotion_list.extend(promotion) 
+        else: return "Error"
 
-    def search_member_from_id(self, id):
+    def add_transaction(self, transaction):
+        if isinstance(transaction, PaymentTransaction):
+            self.__transaction_list.append(transaction)  
+        else: return "Error"   
+    
+    # Search for instance.
+    def search_member_from_id(self, id): # find instance of member
         for member in self.__member_list:
             if id == member.id:
                 return member
         return None 
     
-    def search_daily_stock_from_date(self, date):
+    def search_daily_stock_from_date(self, date): # find instance of daily stock 
         for daily in self.__daily_stock_list:
             if date == daily.date:
                 return daily
-        return None  
+        return None 
+
+    def search_promotion_from_code(self, code: str): # find instance of coupon
+        code = code.upper()
+        for promotion in self.__promotion_list:
+            if promotion.code == code:
+                return promotion
+        return None
+
+    # def search_booking_from_id(self, id) -> Booking:   # find instance of booking
+    #     for member in self.__member_list:
+    #         for booking in member.booking_list:
+    #             if booking.id == id:
+    #                 return booking
+    #     return None
     
-    def format_str_to_date(self, str_date): # If input date as string.
+    def search_booking_from_member(self, member, booking_id): # find instance of booking
+        for booking in member.booking_list:
+            if booking.id == booking_id:
+                return booking
+        return None
+
+    def search_transaction_from_id(self, id): # find instance of payment transaction
+        for transaction in self.__transaction_list:
+            print(transaction.id)
+            if transaction.id == id:
+                return transaction
+        return None
+
+    def find_item(self, daily_stock, item: dict): # find instance of selected item
+        item = item.dict()
+        if item["name"] == None:
+            return None
+        if item["name"] == "cabana":
+            for cabana in daily_stock.get_cabana_in_zone(item["zone"]):
+                if item["id"].upper() == cabana.id and item["id"].upper() != None:
+                    return cabana
+            return None
+        elif item["name"] == "locker":
+            for locker in daily_stock.locker_list:
+                if locker.size == item["size"].upper() and item["size"].upper() != None:
+                    return locker
+            return None
+        elif item["name"] == "ticket":
+            for ticket in daily_stock.ticket_list:
+                if ticket.type == item["type"] and item["type"] != None:
+                    return ticket
+            return None
+        elif item["name"] == "towel":
+            return daily_stock.towel
+        return None 
+
+    # Change format of date from string.
+    def format_str_to_date(self, str_date): # if input date as string.
         try:
             selected_date = date.fromisoformat(str_date)
             return selected_date
         except ValueError:
             return None
 
-    def get_services_in_stock(self, stock):
-        services = {}
-        services["Ticket"] = stock.ticket_list
-        services["Cabana"] = {}
-        for zone in self.__zone_list:
-            services["Cabana"][zone] = stock.get_cabana_in_zone(zone)
-        services["Locker"] = stock.locker_list
-        services["Towel"] = stock.towel
-        return services     
+    # Log in
+    def login_member(self, email, password):
+        for member in self.__member_list:
+            if member.verify_member(email, password) != None:
+                # member_id = member.verify_member(email, password).id
+                return "Login successful" # return member id
+        return "Email or password is incorrect."  
     
+    # Subscription
+    def become_member(self, name, email, phone_number, birthday, password):
+        for member in self.__member_list:
+            if email == member.email or phone_number == member.phone_no:
+                return "You are already a member." 
+        error = {}
+        if Member.check_email(email) == False:
+            error["email"] = "Fill the correct email."
+        if Member.check_phone_number(phone_number) == False and len(phone_number) != 10:
+            error["phone"] = "Fill the correct phone number."
+        if Member.check_password(password) == False and len(password) < 8:
+            error["password"] = "Please use a password with at least 8 characters and only the letters 0-9, a-z, A-Z, (.) or (_)."
+        if len(error) > 0:
+            return error
+        self.add_member(Member(name, email, phone_number, birthday, password))
+        return "Membership registration completed."
+
+    # Get services information.
     def get_cabana_in_zone(self, date):
         daily_stock = self.search_daily_stock_from_date(date)
         cabana_in_zone = {}
         for zone in self.__zone_list:
             cabana_in_zone[zone] = daily_stock.get_cabana_in_zone(zone)
-        return cabana_in_zone
+        return cabana_in_zone 
     
-    def find_item(self, daily_stock, item: dict):
-        item = item.dict()
-        if item['name'] != None :
-            if item['name'] == 'cabana':
-                for cabana in daily_stock.get_cabana_in_zone(item['zone']):
-                    if item['id'] == cabana.id and item['id'] != None:
-                        return cabana
-                return None
-            elif item['name'] == 'locker':
-                for locker in daily_stock.locker_list:
-                    if locker.size == item['size'] and item['size'] != None:
-                        return locker
-                return None
-            elif item['name'] == 'ticket':
-                for ticket in daily_stock.ticket_list:
-                    if ticket.type == item['type'] and item['type'] != None:
-                        return ticket
-                return None
-            elif item['name'] == 'towel':
-                return daily_stock.towel
-            return None
-        return None
+    def get_services_in_stock(self, stock):
+        services = {}
+        services["ticket"] = stock.ticket_list
+        services["cabana"] = {}
+        for zone in self.__zone_list:
+            services["cabana"][zone] = [cabana.to_dict() for cabana in stock.get_cabana_in_zone(zone)]
+        services["locker"] = stock.locker_list
+        services["towel"] = stock.towel.to_dict()
+        return services          
     
+    # Add or Reduce item from order.
     def manage_order(self, member_id: int, date: str, items, type): # type A = Add, R = Reduce
         selected_date = self.format_str_to_date(date)
         member = self.search_member_from_id(member_id)
         if selected_date == None:
             return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
         if member == None:
-            return 'Invalid member id.'
+            return "Invalid member id."
         order = member.get_order_from_visit_date(selected_date)
+        if order == None:
+            return "Order not found."
         daily_stock = self.search_daily_stock_from_date(selected_date)
+        if daily_stock == None:
+            return "Please select the available date."
         item = self.find_item(daily_stock, items)
         if item != None:
-            if type == 'A' and daily_stock.is_available(item, 1): # Press (+) button.
+            if type == "A" and daily_stock.is_available(item, 1): # Press (+) button.
                 return order.add_item(item)
-            elif type == 'R': # Press (-) button.
+            elif type == "R": # Press (-) button.
                 return order.reduce_item(item)
-            return 'Invalid type. Please choose A(Add) or R(Reduce).'
-        return 'Invalid item.'
-
-    def become_member(self, name, email, phone_number, birthday, password):
-        for member in self.__member_list:
-            if email == member.email or phone_number == member.phone_no:
-                return 'You are already a member.' 
-        if Member.check_email(email):
-            if Member.check_phone_number(phone_number) and len(phone_number) == 10:
-                if Member.check_password(password) and len(password) >= 8:
-                    self.add_member(Member(name, email, phone_number, birthday, password))
-                    return 'Membership registration completed.'
-                return 'Please use a password with at least 8 characters and only the letters 0-9, a-z, A-Z, or (.)'
-            return 'Fill the correct phone number.'
-        return 'Fill the correct email.'                 
-
-    def verify_member(self, email, password):
-        for member in self.__member_list:
-            member.verify_member(email, password)
-        return 'Email or password is incorrect.'
+            return "Invalid type. Please choose A(Add) or R(Reduce)."
+        return "Invalid item."
     
-
-    #def apply_code(self, member_id: int):
-
-    def add_coupon(self, member_id, date, info):
+    # Use a coupon to discount total of order.
+    def apply_coupon(self, member_id, date, info):
         info = info.dict()
         member = self.search_member_from_id(member_id)
         date = self.format_str_to_date(self, date)
@@ -170,17 +202,22 @@ class WaterPark:
         
         coupon = self.search_promotion_from_code(info["code"].upper())
         order = member.order
-        if coupon == None: return "coupon not found"
-        if coupon.is_expired() == True : return "coupon Expired"
-        if coupon.min_purchase > order.cal_price() : return "not enough total"
+        if coupon == None: 
+            return "Incorrect coupon code."
+        if coupon.is_expired() == True: 
+            return "This code has expired."
+        if isinstance(coupon, AmountCoupon) :
+            if coupon.min_purchase > order.cal_purchase_amount(): 
+                return "The purchase amount is not enough."
         order.promotion = coupon
-        return "coupon used" # order.to_dict()
+        return "Coupon successfully used!" 
     
+    # Show member info and order detail.
     def show_confirm(self, member_id: int):
         member = self.search_member_from_id(member_id)
-        if member.order == None:
-            return "No Order"
-        if member.booking_temp != None :
+        if member.order == None: 
+            return "Not found order"
+        if member.booking_temp != None:
             if member.order == member.booking_temp.order:
                 member.booking_temp.booking_date = date.today()
                 return {
@@ -193,99 +230,75 @@ class WaterPark:
                 "booking": member.booking_temp.to_dict()
             }
         
-
+    # Show booking id and info that must be filled in for payment.
     def show_payment(self, member_id: int, payment_method: str):
         member = self.search_member_from_id(member_id)
         booking = member.booking_temp
         if booking == None:
-            return "No booking"
+            return "Booking not found."
         return {
             "booking_id": booking.id,
             "amount": str(booking.order.total),
             "payment_method": payment_method
         }
     
-    def paid(self, member_id: int, info, payment_method):
-        member = self.search_member_from_id(member_id)
-        if member == None : return "no member"
-        booking = member.booking_temp
-        order = booking.order
-        date = order.visit_date
-        dailystock = self.search_daily_stock_from_date(date)
-        if booking == None:
-            return "booking not found"
-        if self.is_available(order, dailystock) == False:
-            member.booking_temp = None
-            member.order = None
-            return "delete success"
-        self.update_dailystock(order, dailystock)
-        payment_method = deepcopy(self.__payment_list[payment_method]) #bankpayment
-        transaction = PaymentTransaction(booking.id, booking.order.total)
-        payment_method.pay(transaction, info)
-        self.add_transaction(transaction)
-        booking.update_status()
-        member.add_booking(booking)
-        booking_info = self.booking_to_pdf(member)
-        member.booking_temp, member.order = None, None
-        self.__finish_booking_manager.create_pdf(booking_info)
-        return f"pay success {member.id}, {booking.id}"
-    
-    def show_finish_booking(self, member_id, booking_id):
-        member = self.search_member_from_id(member_id)
-        if member==None:
-            return "mem not found"
-        if self.search_booking_from_member(member, booking_id) == None:
-            return "booking not found"
-        return self.__finish_booking_manager.view_finish_booking(booking_id)
-
-    def search_promotion_from_code(self, code: str):
-        code = code.upper()
-        for promotion in self.__promotion_list:
-            if promotion.code == code:
-                return promotion
-        return None
-
-    def search_booking_from_id(self, id) -> Booking:   #search in customer&&member
-        for member in self.__member_list:
-            for booking in member.booking_list:
-                if booking.id == id:
-                    return booking
-        return None
-    
-    def search_booking_from_member(self, member, booking_id):
-        for booking in member.booking_list:
-            if booking.id == booking_id:
-                return booking
-        return None
-
-    def search_transaction_from_id(self, id) -> PaymentTransaction:
-        for transaction in self.__transaction_list:
-            print(transaction.id)
-            if transaction.id == id:
-                return transaction
-        return None
-    def is_available(self, order, dailystock):
+    # Check if items in order are still available and comfirm payment.
+    def is_available(self, order, dailystock): # check still available
         for detail in order.order_detail:
             if dailystock.is_available(detail.item, detail.amount) == False:
                 return False
         return True
     
-    def update_dailystock(self, order, dailystock):
+    def paid(self, member_id: int, info, payment_method): # confirm payment
+        member = self.search_member_from_id(member_id)
+        if member == None : return "Member not found."
+        booking = member.booking_temp
+        order = booking.order
+        date = order.visit_date
+        dailystock = self.search_daily_stock_from_date(date)
+        if booking == None:
+            return "Booking not found."
+        
+        # for detail in order.order_detail:
+        #     if dailystock.is_available(detail.item, detail.amount) == False:
+        #         member.booking_temp = None
+        #         member.order = None
+        #         return "Your order is no longer available."
+    
+        if self.is_available(order, dailystock) == True:
+            self.update_dailystock(order, dailystock)
+            payment_method = deepcopy(self.__payment_list[payment_method]) # Bankpayment
+            transaction = PaymentTransaction(booking.id, booking.order.total)
+            payment_method.pay(transaction, info)
+            self.add_transaction(transaction)
+            booking.update_status()
+            member.add_booking(booking)
+            booking_info = self.booking_to_pdf(member, booking)
+            member.booking_temp, member.order = None, None
+            self.__finish_booking_manager.create_pdf(booking_info)
+            return f"Pay success {member.id}, {booking.id}"
+        else:
+            member.booking_temp = None
+            member.order = None
+            return "Your order is no longer available."
+    
+    # Update stock and show booking after successful payment.
+    def update_dailystock(self, order, dailystock): # update stock
         for detail in order.order_detail:
             dailystock.update_item(detail.item, detail.amount)
-
-    def add_transaction(self, transaction: PaymentTransaction):
-        self.__transaction_list.append(transaction)
-    def add_daily_stock(self, dailystock: DailyStock):
-        self.__daily_stock_list.append(dailystock)
-    def add_member(self, member: Member):
-        self.__member_list.append(member)
-    def add_promotion(self, promotion: Promotion):
-        self.__promotion_list.extend(promotion)    
-    def get_member_list(self):
-        return self.__member_list
+        
+    def show_success_payment(self):
+        pass
     
-    def booking_to_pdf(self, member):
+    def show_finish_booking(self, member_id, booking_id): # show complete booking
+        member = self.search_member_from_id(member_id)
+        if member == None:
+            return "Not found this member."
+        if self.search_booking_from_member(member, booking_id) == None:
+            return "Not found this booking."
+        return self.__finish_booking_manager.view_finish_booking(booking_id)
+    
+    def booking_to_pdf(self, member, bookin):
         booking = member.booking_temp
         order = booking.order
         return {
@@ -308,7 +321,6 @@ class WaterPark:
     }
     
 
-
 def create_promotion():
     return [
         AmountCoupon(date.today()-timedelta(days=1) ,date.today()+timedelta(days=3) , "35IWK0M5" , 200, 1000),
@@ -320,6 +332,7 @@ def create_promotion():
         PercentCoupon(date.today()-timedelta(days=10) ,date.today()+timedelta(days=5) , "VROPTVOJ" , 0.2, 2500),
         PercentCoupon(date.today()+timedelta(days=20) ,date.today()-timedelta(days=7) , "UCJHSTWQ" , 0.3)
     ]
+
 def create_member():
     return [ 
         Member("James", "james123@gmail.com", "0812345678", date(2001,2,14), "12xncvbj34")
@@ -337,74 +350,74 @@ def create_member():
 
 def create_cabana():
     wave_pool_zone = []
-    wave_pool_zone.append(Cabana('W01', 'S', 'Wave Pool')) # Wave Pool Zone
-    wave_pool_zone.append(Cabana('W02', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W03', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W04', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W05', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W06', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W07', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W08', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W09', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W10', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W11', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W12', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W13', 'L', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W14', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W15', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W16', 'M', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W14', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W14', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('W14', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('P05', 'S', 'Wave Pool'))
-    wave_pool_zone.append(Cabana('P06', 'S', 'Wave Pool'))
+    wave_pool_zone.append(Cabana("W01", "S", "Wave Pool")) # Wave Pool Zone
+    wave_pool_zone.append(Cabana("W02", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W03", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W04", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W05", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W06", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W07", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W08", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W09", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W10", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W11", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W12", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W13", "L", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W14", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W15", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W16", "M", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W14", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W14", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("W14", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("P05", "S", "Wave Pool"))
+    wave_pool_zone.append(Cabana("P06", "S", "Wave Pool"))
 
     activity_relax_zone = []
-    activity_relax_zone.append(Cabana('P01', 'S', 'Activity and Relax')) # Activity and Relax Zone
-    activity_relax_zone.append(Cabana('P02', 'S', 'Activity and Relax'))
-    activity_relax_zone.append(Cabana('P03', 'M', 'Activity and Relax'))
-    activity_relax_zone.append(Cabana('P04', 'M', 'Activity and Relax'))
+    activity_relax_zone.append(Cabana("P01", "S", "Activity and Relax")) # Activity and Relax Zone
+    activity_relax_zone.append(Cabana("P02", "S", "Activity and Relax"))
+    activity_relax_zone.append(Cabana("P03", "M", "Activity and Relax"))
+    activity_relax_zone.append(Cabana("P04", "M", "Activity and Relax"))
 
     hill_zone = []
-    hill_zone.append(Cabana('H01', 'S', 'Activity and Relax')) # Hill Zone
-    hill_zone.append(Cabana('H02', 'S', 'Activity and Relax'))
-    hill_zone.append(Cabana('H03', 'S', 'Activity and Relax'))
-    hill_zone.append(Cabana('H04', 'M', 'Activity and Relax'))
-    hill_zone.append(Cabana('H05', 'M', 'Activity and Relax'))
+    hill_zone.append(Cabana("H01", "S", "Activity and Relax")) # Hill Zone
+    hill_zone.append(Cabana("H02", "S", "Activity and Relax"))
+    hill_zone.append(Cabana("H03", "S", "Activity and Relax"))
+    hill_zone.append(Cabana("H04", "M", "Activity and Relax"))
+    hill_zone.append(Cabana("H05", "M", "Activity and Relax"))
 
     family_zone = []
-    family_zone.append(Cabana('F01', 'M', 'Family')) # Family Zone
-    family_zone.append(Cabana('F02', 'S', 'Family'))
-    family_zone.append(Cabana('F03', 'L', 'Family'))
-    family_zone.append(Cabana('F04', 'S', 'Family'))
-    family_zone.append(Cabana('F05', 'M', 'Family'))
-    family_zone.append(Cabana('F06', 'M', 'Family'))
-    family_zone.append(Cabana('K05', 'M', 'Family'))
-    family_zone.append(Cabana('K06', 'M', 'Family'))
-    family_zone.append(Cabana('K07', 'S', 'Family'))
+    family_zone.append(Cabana("F01", "M", "Family")) # Family Zone
+    family_zone.append(Cabana("F02", "S", "Family"))
+    family_zone.append(Cabana("F03", "L", "Family"))
+    family_zone.append(Cabana("F04", "S", "Family"))
+    family_zone.append(Cabana("F05", "M", "Family"))
+    family_zone.append(Cabana("F06", "M", "Family"))
+    family_zone.append(Cabana("K05", "M", "Family"))
+    family_zone.append(Cabana("K06", "M", "Family"))
+    family_zone.append(Cabana("K07", "S", "Family"))
     
     cabana_list = []
     cabana_list.extend([wave_pool_zone, activity_relax_zone, hill_zone, family_zone])
     return cabana_list
 
 def create_locker():
-    locker_list = [Locker('M', 149, 80), Locker('L', 229, 20)]
+    locker_list = [Locker("M", 149, 80), Locker("L", 229, 20)]
     return locker_list
     
 def create_ticket():
     ticket_list = []
     
     # Solo Ticket
-    ticket_list.append(Ticket('Full Day', 1, 699))
-    ticket_list.append(Ticket('Senior', 1, 599)) # >= 60 y.o. and want to play slides
-    ticket_list.append(Ticket('Child', 1, 0))
-    ticket_list.append(Ticket('SPD', 1, 0)) # including pregnant and disabled 
+    ticket_list.append(Ticket("Full Day", 1, 699))
+    ticket_list.append(Ticket("Senior", 1, 599)) # >= 60 y.o. and want to play slides
+    ticket_list.append(Ticket("Child", 1, 0))
+    ticket_list.append(Ticket("SPD", 1, 0)) # including pregnant and disabled 
 
     # Group Ticket
-    ticket_list.append(Ticket('Group for 4', 4, 2599))
-    ticket_list.append(Ticket('Group for 6', 6, 3779))
-    ticket_list.append(Ticket('Group for 8', 8, 4879))
-    ticket_list.append(Ticket('Group for 10', 10, 5999))
+    ticket_list.append(Ticket("Group for 4", 4, 2599))
+    ticket_list.append(Ticket("Group for 6", 6, 3779))
+    ticket_list.append(Ticket("Group for 8", 8, 4879))
+    ticket_list.append(Ticket("Group for 10", 10, 5999))
     
     return ticket_list
 
@@ -416,8 +429,8 @@ def create_daily_stock():
     return lst
 
 def create_order():
-    t = Ticket('Full Day', 1, 699)
-    c = Cabana('W01', 'S', 'Wave Pool')
+    t = Ticket("Full Day", 1, 699)
+    c = Cabana("W01", "S", "Wave Pool")
     order = Order(date.today()+ timedelta(days=3))
     order.add_item(t)
     order.add_item(t)
@@ -425,32 +438,33 @@ def create_order():
     order.add_item(c)
     return order
 
-def constructor():
-    dkub = WaterPark()
-    today = date.today()
-    for i in range(60) :
-        dkub.add_daily_stock(DailyStock(today + timedelta(days=i)))
-    my_order = dkub.create_order(date.today())
-    daily_stock = dkub.search_daily_stock_from_date(my_order.visit_date)
-    towel = daily_stock.towel   
-    for locker in daily_stock.locker_list: # choose locker
-        locker_L = locker
-    for ticket in daily_stock.ticket_list: # choose ticket
-        my_ticket = ticket
+# def constructor():
+#     dkub = WaterPark()
+#     today = date.today()
+#     for i in range(60) :
+#         dkub.add_daily_stock(DailyStock(today + timedelta(days=i)))
+#     my_order = dkub.create_order(date.today())
+#     daily_stock = dkub.search_daily_stock_from_date(my_order.visit_date)
+#     towel = daily_stock.towel   
+#     for locker in daily_stock.locker_list: # choose locker
+#         locker_L = locker
+#     for ticket in daily_stock.ticket_list: # choose ticket
+#         my_ticket = ticket
         
-    dkub.add_item(towel, my_order)
-    dkub.add_item(towel, my_order)
-    dkub.add_item(towel, my_order)
-    dkub.add_item(locker_L, my_order)
-    dkub.add_item(my_ticket, my_order)
-    dkub.remove_item(towel, my_order)
+#     dkub.add_item(towel, my_order)
+#     dkub.add_item(towel, my_order)
+#     dkub.add_item(towel, my_order)
+#     dkub.add_item(locker_L, my_order)
+#     dkub.add_item(my_ticket, my_order)
+#     dkub.remove_item(towel, my_order)
 
 
-    # customer_list = create_customer()
-    # [dkub.add_customer(customer) for customer in customer_list]
-    # return (dkub, customer_list)
-# constructor()
+#     # customer_list = create_customer()
+#     # [dkub.add_customer(customer) for customer in customer_list]
+#     # return (dkub, customer_list)
 
-# if '__main__' == __name__ :
+# # constructor()
+
+# # if "__main__" == __name__ :
     
-#     # create_booking()
+# #     # create_booking()

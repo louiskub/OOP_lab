@@ -1,14 +1,13 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from fastapi.responses import RedirectResponse
-from service import Cabana, Towel, Ticket, Locker 
-from order import Order, OrderDetail
-from member import Member
-from stock import Stock, DailyStock
-from datetime import datetime, timedelta
+# from fastapi.responses import RedirectResponse
+# from service import Cabana, Towel, Ticket, Locker 
+# from order import Order, OrderDetail
+# from member import Member
+# from stock import Stock, DailyStock
+# from datetime import datetime, timedelta
+# from datetime import date
 
-from datetime import date
-import time, json
 from waterpark import *
 app = FastAPI()
 
@@ -78,47 +77,53 @@ def show_services_in_date( date: str):
     return {f"Services in {selected_date}": system.get_services_in_stock(daily_stock)}
 
 # POST-- > Add item to order.
-@app.post("/{member_id}/services/{date}", tags=['Services'])
+@app.post("/{member_id}/services/{date}", tags = ['Services'])
 async def add_order(member_id: int, date: str, item: Item):
     return system.manage_order(member_id, date, item, 'A')
 
 # DELETE-- > Remove item from order.
-@app.delete("/{member_id}/services/{date}", tags=['Services'])
+@app.delete("/{member_id}/services/{date}", tags = ['Services'])
 async def add_order(member_id: int, date: str, item: Item):
     return system.manage_order(member_id, date, item, 'R')
 
 # ---- apply coupon --> retotal
-@app.put('/{member_id}/services/{date}', tags=['Services'])
-def add_coupon(member_id: int, date: str, info: CouponInput):
-    return system.add_coupon(member_id, date, info)
-
+@app.put('/{member_id}/services/{date}', tags = ['Services'])
+def apply_coupon(member_id: int, date: str, info: CouponInput):
+    return system.apply_coupon(member_id, date, info)
 
 # ---- show confirm 
-@app.get('/{member_id}/show_confirm', tags=['show_confirm'])
+@app.get('/{member_id}/show_confirm', tags = ['show_confirm'])
 def show_confirm(member_id: int):
     return system.show_confirm(member_id)
 
-@app.get('/{member_id}/show_payment/bank', tags=['show_payment'])
+@app.get('/{member_id}/show_payment/bank', tags = ['show_payment'])
 def show_bank_payment(member_id: int):
     return system.show_payment(member_id, "bank")
     #waterpark.show_payment(int(member_id), "bank")
-@app.get('/{member_id}/show_payment/card', tags=['show_payment'])
+
+@app.get('/{member_id}/show_payment/card', tags = ['show_payment'])
 def show_card_payment(member_id: int):
     return system.show_payment(member_id, "card")
 
 #กดจ่ายตัง
-@app.put('/{member_id}/show_payment/bank', tags=['show_payment'])
+@app.put('/{member_id}/show_payment/bank', tags = ['show_payment'])
 def bank_paid(member_id: int, info: BankInput):
     return system.paid(member_id, info, 0)
     
-@app.put('/{member_id}/show_payment/card', tags=['show_payment'])
+@app.put('/{member_id}/show_payment/card', tags = ['show_payment'])
 def card_paid(member_id: int, info: CardInput):
     return system.paid(member_id, info, 1)
 
-# show pdf via file
-@app.get('/{member_id}/finish_booking/{booking_id}', tags=['finish_booking'])
+
+
+
+#download pdf via file
+@app.get('/{member_id}/finish_booking/{booking_id}', tags = ['finish_booking'])
 def show_finish_booking(member_id: int, booking_id: int):
-    return system.show_finish_booking(int(member_id), int(booking_id))
+    from bookingmanager import FinishBookingManager
+    f = FinishBookingManager()
+    return f.view_finish_booking(booking_id)
+    #return system.show_finish_booking(int(member_id), int(booking_id))
 
 
 # # from fastapi.responses import RedirectResponse

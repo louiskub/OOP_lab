@@ -1,5 +1,3 @@
-from booking import Booking
-from order import Order
 from service import Cabana, Locker, Ticket, Towel
 from datetime import date, timedelta
 
@@ -13,12 +11,15 @@ class Stock:
     @property
     def cabana_list(self):
         return self.__cabana_list
+    
     @property
     def locker_list(self):
         return self.__locker_list
+    
     @property
     def ticket_list(self):
         return self.__ticket_list
+    
     @property
     def towel(self):
         return self.__towel
@@ -96,20 +97,20 @@ class Stock:
         ticket_list.append(Ticket('Group for 10', 10, 5999))
         return ticket_list
 
-    def add_cabana(self, cabana):
-        if isinstance(cabana, Cabana):
-            self.__cabana_list.append(cabana)
-        else: return 'Error'  
+    # def add_cabana(self, cabana):
+    #     if isinstance(cabana, Cabana):
+    #         self.__cabana_list.append(cabana)
+    #     else: return 'Error'  
 
-    def add_locker(self, locker):
-        if isinstance(locker, Locker):
-            self.__locker_list.append(locker)
-        else: return 'Error'  
+    # def add_locker(self, locker):
+    #     if isinstance(locker, Locker):
+    #         self.__locker_list.append(locker)
+    #     else: return 'Error'  
 
-    def add_ticket(self, ticket):
-        if isinstance(ticket, Ticket):
-            self.__ticket_list.append(ticket)
-        else: return 'Error'
+    # def add_ticket(self, ticket):
+    #     if isinstance(ticket, Ticket):
+    #         self.__ticket_list.append(ticket)
+    #     else: return 'Error'
 
     def get_cabana_in_zone(self, cabana_zone):
         for zone in range (len(self.__cabana_list)):
@@ -131,9 +132,9 @@ class DailyStock(Stock):
     
     def update_item(self, item, amount):
         if isinstance(item, Cabana):
-            item.update_status('R')
+            item.update_status('A')
         elif not isinstance(item, Ticket):
-            item.update_status('R', amount)
+            item.update_status('A', amount)
 
     def is_available(self, item, amount):
         if isinstance(item, Cabana):
