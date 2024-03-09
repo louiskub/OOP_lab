@@ -76,7 +76,7 @@ class Cabana:
             self.__is_reserve = False
             
     def name(self):
-        return f"Cabana({self.__size}): {self.__zone} Zone"
+        return f"Cabana({self.__size}) {self.__zone} Zone"
     
     def to_dict(self):
         return {
@@ -109,10 +109,10 @@ class Locker:
         return self.__remaining_amount
     
     def update_status(self, type, amount): # type A = Add , R = Remove item from order
-        if type == 'A' and 0 < amount <= self.remaining_amount:
-            self.remaining_amount -= amount
+        if type == 'A' and 0 < amount <= self.__remaining_amount:
+            self.__remaining_amount -= amount
         elif type == 'R' and 0 < amount:
-            self.remaining_amount += amount
+            self.__remaining_amount += amount
 
     def name(self):
         return f"Locker {self.__size}"

@@ -17,7 +17,7 @@ class WaterPark:
         self.__daily_stock_list = create_daily_stock()
         self.__zone_list = ["Wave Pool", "Activity and Relax", "Hill", "Family"]
         self.__member_list = create_member()
-        self.__promotion_list = []
+        self.__promotion_list = create_promotion()
         self.__payment_list = [BankPayment(), CardPayment()]
         self.__transaction_list = []
         self.__finish_booking_manager = FinishBookingManager()
@@ -45,7 +45,7 @@ class WaterPark:
 
     def add_promotion(self, promotion):
         if isinstance(promotion, Promotion):
-            self.__promotion_list.extend(promotion) 
+            self.__promotion_list.append(promotion) 
         else: return "Error"
 
     def add_transaction(self, transaction):
@@ -150,20 +150,20 @@ class WaterPark:
         return "Membership registration completed."
 
     # Get services information.
-    def get_cabana_in_zone(self, date):
-        daily_stock = self.search_daily_stock_from_date(date)
-        cabana_in_zone = {}
-        for zone in self.__zone_list:
-            cabana_in_zone[zone] = daily_stock.get_cabana_in_zone(zone)
-        return cabana_in_zone 
+    # def get_cabana_in_zone(self, date):
+    #     daily_stock = self.search_daily_stock_from_date(date)
+    #     cabana_in_zone = {}
+    #     for zone in self.__zone_list:
+    #         cabana_in_zone[zone] = daily_stock.get_cabana_in_zone(zone)
+    #     return cabana_in_zone 
     
     def get_services_in_stock(self, stock):
         services = {}
-        services["ticket"] = stock.ticket_list
+        services["ticket"] = [ticket.to_dict() for ticket in stock.ticket_list]
         services["cabana"] = {}
         for zone in self.__zone_list:
             services["cabana"][zone] = [cabana.to_dict() for cabana in stock.get_cabana_in_zone(zone)]
-        services["locker"] = stock.locker_list
+        services["locker"] = [locker.to_dict() for locker in stock.locker_list]
         services["towel"] = stock.towel.to_dict()
         return services          
     
@@ -183,10 +183,13 @@ class WaterPark:
             return "Please select the available date."
         item = self.find_item(daily_stock, items)
         if item != None:
-            if type == "A" and daily_stock.is_available(item, 1): # Press (+) button.
-                return order.add_item(item)
-            elif type == "R": # Press (-) button.
+            #if type == "A" and daily_stock.is_available(item, 1): # Press (+) button.
+            if type == "R": # Press (-) button.
                 return order.reduce_item(item)
+            elif daily_stock.is_available(item, order.order_amount(item) + 1 ) == False:
+                return "Order limit"
+            elif type == "A": # Press (+) button.
+                return order.add_item(item)
             return "Invalid type. Please choose A(Add) or R(Reduce)."
         return "Invalid item."
     
@@ -194,9 +197,11 @@ class WaterPark:
     def apply_coupon(self, member_id, date, info):
         info = info.dict()
         member = self.search_member_from_id(member_id)
-        date = self.format_str_to_date(self, date)
+        date = self.format_str_to_date(date)
         if date == None : 
             return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
+        if member.order == None :
+            return "Please Select Some Service"
         if member.order.visit_date != date : 
             return "Invalid order date"
         
@@ -217,6 +222,8 @@ class WaterPark:
         member = self.search_member_from_id(member_id)
         if member.order == None: 
             return "Not found order"
+        if member.order.total == 0:
+            return "please select some service"
         if member.booking_temp != None:
             if member.order == member.booking_temp.order:
                 member.booking_temp.booking_date = date.today()
@@ -236,6 +243,8 @@ class WaterPark:
         booking = member.booking_temp
         if booking == None:
             return "Booking not found."
+        if booking.order.total == 0:
+            return "please select some service"
         return {
             "booking_id": booking.id,
             "amount": str(booking.order.total),
@@ -258,6 +267,8 @@ class WaterPark:
         dailystock = self.search_daily_stock_from_date(date)
         if booking == None:
             return "Booking not found."
+        if booking.order.total == 0:
+            return "please select some service"
         
         # for detail in order.order_detail:
         #     if dailystock.is_available(detail.item, detail.amount) == False:

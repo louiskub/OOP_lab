@@ -61,11 +61,11 @@ class Stock:
         activity_relax_zone.append(Cabana('P04', 'M', 'Activity and Relax'))
 
         hill_zone = []
-        hill_zone.append(Cabana('H01', 'S', 'Activity and Relax')) # Hill Zone
-        hill_zone.append(Cabana('H02', 'S', 'Activity and Relax'))
-        hill_zone.append(Cabana('H03', 'S', 'Activity and Relax'))
-        hill_zone.append(Cabana('H04', 'M', 'Activity and Relax'))
-        hill_zone.append(Cabana('H05', 'M', 'Activity and Relax'))
+        hill_zone.append(Cabana('H01', 'S', 'Hill')) # Hill Zone
+        hill_zone.append(Cabana('H02', 'S', 'Hill'))
+        hill_zone.append(Cabana('H03', 'S', 'Hill'))
+        hill_zone.append(Cabana('H04', 'M', 'Hill'))
+        hill_zone.append(Cabana('H05', 'M', 'Hill'))
 
         family_zone = []
         family_zone.append(Cabana('F01', 'M', 'Family')) # Family Zone
@@ -143,12 +143,18 @@ class DailyStock(Stock):
             return item.remaining_amount >= amount
         return True
     
+    # def get_cabana_in_zone(self, cabana_zone):
+    #     for zone in range (len(self.cabana_list)):
+    #         for cabana in self.cabana_list[zone]:
+    #             if cabana_zone == cabana.zone:
+    #                 return [cabana.to_dict() for cabana in self.cabana_list[zone]]
+    #             zone += 1
+    #     return None
     def get_cabana_in_zone(self, cabana_zone):
+        print("ok")
         for zone in range (len(self.cabana_list)):
-            for cabana in self.cabana_list[zone]:
-                if cabana_zone == cabana.zone:
-                    return self.cabana_list[zone]
-                zone += 1        
+            if cabana_zone == self.cabana_list[zone][0].zone:
+                return self.cabana_list[zone]
         return None
 
 def create_daily_stock():

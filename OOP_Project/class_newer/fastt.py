@@ -45,7 +45,6 @@ system = WaterPark()
 member = create_member()
 promotion = create_promotion()
 #system.add_member(member)
-system.add_promotion(promotion)
 mem = member[1]
 order = create_order()
 #print(waterpark.get_member_list())
@@ -71,7 +70,7 @@ async def show_all_services():
 
 # GET -- > Get services after selected visit date.
 @app.get("/{member_id}/services/{date}", tags = ['Services'])
-def show_services_in_date( date: str):
+def show_services_in_date(date: str):
     selected_date = system.format_str_to_date(date)
     daily_stock = system.search_daily_stock_from_date(selected_date)
     return {f"Services in {selected_date}": system.get_services_in_stock(daily_stock)}
@@ -79,11 +78,12 @@ def show_services_in_date( date: str):
 # POST-- > Add item to order.
 @app.post("/{member_id}/services/{date}", tags = ['Services'])
 async def add_order(member_id: int, date: str, item: Item):
+    #print(date)
     return system.manage_order(member_id, date, item, 'A')
 
 # DELETE-- > Remove item from order.
 @app.delete("/{member_id}/services/{date}", tags = ['Services'])
-async def add_order(member_id: int, date: str, item: Item):
+async def reduce_order(member_id: int, date: str, item: Item):
     return system.manage_order(member_id, date, item, 'R')
 
 # ---- apply coupon --> retotal
@@ -121,14 +121,38 @@ def payment_success(member_id: int, booking_id: int):
         "Hello": "World"
     }
 
-#download pdf via file
+#download pdf via file ---> click button to download pdf
 @app.get('/{member_id}/finish_booking/{booking_id}', tags = ['finish_booking'])
 def show_finish_booking(member_id: int, booking_id: int):
     from bookingmanager import FinishBookingManager
     f = FinishBookingManager()
     return f.view_finish_booking(booking_id)
-
     #return system.show_finish_booking(int(member_id), int(booking_id))
+
+# view member info
+@app.get('/{member_id}/show_member_info', tags=["View Info"])
+def show_member_info(member_id: int):
+    member = system.search_member_from_id(member_id)
+    return member.to_dict()
+
+# view all booking 
+@app.get('/{member_id}/show_all_booking', tags=["View Info"])
+def show_all_booking(member_id: int):
+    member = system.search_member_from_id(member_id)
+    booking_detail = []
+    for booking in member.booking_list:
+        booking_detail.append({
+            "booking_id": booking.id,
+            "visit_date": booking.order.visit_date
+        })
+    if len(booking_detail) > 0 :
+        booking_detail.sort(key = lambda item: item['detail'])
+    return booking_detail 
+    
+# @app.get('/root')
+# def root():
+#     return date(2002, 5, 15)
+
 
 # http://127.0.0.1:8000/100/finish_booking/100000
 # # from fastapi.responses import RedirectResponse

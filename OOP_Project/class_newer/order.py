@@ -76,14 +76,20 @@ class Order:
                 if items.amount == 0:
                     self.__order_detail.remove(items)
                 self.cal_total()
-                return self
-        return self
+                return self.to_dict()
+        return self.to_dict()
+
+    def order_amount(self, item):
+        for items in self.__order_detail:
+            if items.item == item :
+                return items.amount
+        return 0
 
     def show_order_detail(self):
         return [detail.order_detail_dict() for detail in self.__order_detail]
     
     def to_pdf(self):
-        return [detail.to_dict() for detail in self.__order_detail]
+        return [detail.to_pdf() for detail in self.__order_detail]
 
     def to_dict(self):
         self.cal_total()
@@ -93,7 +99,6 @@ class Order:
             "total": self.__total,
             "discount": self.cal_discount()
         }
-
     
     # def check_still_available(self) -> bool:
     #     for order_detail in self.__order_detail:
@@ -161,5 +166,13 @@ class OrderDetail:
             "item": self.item.to_dict(),
             "amount": self.__amount,
             "total_price": self.__total_price
+        }
+    
+    def to_pdf(self):
+        return {
+                "Item Name": self.__item.name(),
+                "Price": self.__item.price,
+                "Qty": self.__amount,
+                "Subtotal": self.__total_price
         }
     
