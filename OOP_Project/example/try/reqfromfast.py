@@ -13,6 +13,7 @@ def post_todo(id, activity):
     r = requests.post('http://127.0.0.1:3838/todo', data=json.dumps(act))
     print(r)
     print(r.json())
+    print(type(r.json()))
 
 def put_todo(id, activity):
     act = {"id": str(id), "Activity": activity}

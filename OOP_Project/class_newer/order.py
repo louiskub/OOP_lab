@@ -1,5 +1,5 @@
 from service import Cabana, Ticket, Locker, Towel
-
+from promotion import AmountCoupon
 class Order:
     def __init__(self, visit_date):
         self.__visit_date = visit_date
@@ -42,9 +42,13 @@ class Order:
         if self.promotion == None: 
             return 0
         total = self.cal_purchase_amount()
-        if self.promotion.is_expired() or self.promotion.min_purchase > total :
+        if self.promotion.is_expired():
             self.promotion = None
             return 0
+        if isinstance(self.promotion, AmountCoupon):
+            if self.promotion.min_purchase > total :
+                self.promotion = None
+                return 0
         return self.promotion.get_discount(total)
     
     # Calculate total purchase after discount.

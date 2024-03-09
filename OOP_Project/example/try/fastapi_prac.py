@@ -25,21 +25,18 @@ async def get_todos() -> dict:
 @app.post('/todo', tags=["Todos"])
 async def add_todo(todo: dict) -> dict:
     todos.append(todo)
-    return {
-        "data": "A Todo is Added",
-    }
+    return "data A Todo is Added"
+    
 
 @app.put("/todo/{id}", tags=["Todos"])
 async def update_todo(id: int, body: dict) -> dict:
     for todo in todos:
         if int(todo["id"]) == id:
             todo["Activity"] = body["Activity"]
-            return {
-                "data": f"Todo with id {id} has been updated"
-            }
-    return {
-        "data": f"This Todo with id {id} is not found!"
-    }
+            return f"data Todo with id {id} has been updated"
+            
+    return f"data This Todo with id {id} is not found!"
+    
 
 @app.delete("/todo/{id}", tags=["Todos"])
 async def delete_todo(id: int) -> dict:
@@ -47,13 +44,11 @@ async def delete_todo(id: int) -> dict:
         if int(todo["id"]) == id:
             todos.remove(todo)
             print(todos)
-            return {
-                "data": f"Todo with id {id} has been deleted"
-            }
+            return f"data Todo with id {id} has been deleted"
+            
     print("id not found")
-    return {
-        "data": f"This Todo with id {id} is not found!"
-    }
+    return f"data This Todo with id {id} is not found!"
+    
 
 if __name__ == '__main__':
     uvicorn.run("fastapi_prac:app", host="127.0.0.1", port=3838, log_level="info")
