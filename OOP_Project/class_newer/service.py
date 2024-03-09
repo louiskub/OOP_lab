@@ -29,6 +29,7 @@ class Ticket:
     
     def to_dict(self):
         return {
+            "name": self.name(),
             "type": self.__type,
             "amount_per_ticket": self.__amount_per_ticket,
             "price": self.__price,
@@ -80,6 +81,7 @@ class Cabana:
     
     def to_dict(self):
         return {
+            "name": self.name(),
             "id": self.__id,
             "size": self.__size,
             "zone": self.__zone,
@@ -119,6 +121,7 @@ class Locker:
     
     def to_dict(self):
         return {
+            "name": self.name(),
             "price": self.__price,
             "size": self.__size,
             "remaining_amount": self.__remaining_amount
@@ -148,6 +151,7 @@ class Towel:
     
     def to_dict(self):
         return {
+            "name": self.name(),
             "price": self.__price,
             "remaining_amount": self.__remaining_amount
         }

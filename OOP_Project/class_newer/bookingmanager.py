@@ -2,16 +2,20 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus.tables import Table, TableStyle
-import os, segno, smtplib
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse
+from reportlab.graphics import renderPDF
+from svglib.svglib import svg2rlg
+import os, segno, smtplib
 
 class FinishBookingManager:
     def __init__(self):
-        self.__file_path = os.getcwd() + "\\booking\\"
+        self.__path_now = os.getcwd()
+        self.__file_path = self.__path_now + "\\booking\\"
+        self.__logo_path = self.__path_now + "\\DKUB_logo.svg"
         self.__sender_email = 'dkubwaterpark@gmail.com'
         self.__sender_password = 'jjqckufjkkbchyjs'
     
@@ -20,6 +24,14 @@ class FinishBookingManager:
         qrcode_path = self.__file_path + str(booking_id) + ".png"
         qrcode.save(qrcode_path, scale=6)
         return qrcode_path
+    def svg_scale(self, drawing, scaling_factor):
+        scaling_x = scaling_factor
+        scaling_y = scaling_factor
+        drawing.width = drawing.minWidth() * scaling_x
+        drawing.height = drawing.height * scaling_y
+        drawing.scale(scaling_x, scaling_y)
+        return drawing
+    
     def to_table(self, orderdetail: list):    
         table_data = [
             ['Order Detail', 'Price', 'Qty', 'SubTotal'],   #header
@@ -33,6 +45,7 @@ class FinishBookingManager:
     def create_pdf(self, info: dict):
         distance = 15
         row_height = 19
+        move_down_y = 5
         customer, booking, order = info["Customer"], info["Booking"], info["Order"]
 
         target_path = self.__file_path
@@ -41,33 +54,38 @@ class FinishBookingManager:
             os.makedirs(target_path)
         pdf_path = target_path + str(booking["Booking Id"]) + '.pdf'
         qrcode_path = self.create_qrcode(booking["Booking Id"])
-
         c = canvas.Canvas(pdf_path, initialFontSize=20, pagesize=A4)
-        c.drawImage(qrcode_path, 393, 615)
+        c.drawImage(qrcode_path, 393, 602)
 
+        drawing = svg2rlg(self.__logo_path)        
+        scaled_drawing = self.svg_scale(drawing, 0.16)
+        renderPDF.draw( scaled_drawing, c, 40, 770 )
         c.setFillColor(colors.black)
-        c.setFont("Helvetica-Bold", 28)
-        c.drawString(50, 795, "DKUB Water Park")   #BookingId
+        
+        #c.setFont("Helvetica-Bold", 28)
+        #c.drawString(50, 795, "DKUB Water Park")   #BookingId
+        
+
         c.setFont("Helvetica-Bold", 18)
-        c.drawString(40, 780,"___________________________________________________")
-        c.drawString(460, 795, "E-TICKET")   #BookingId
+        c.drawString(40, 770,"___________________________________________________")
+        c.drawString(460, 785, "E-TICKET")   #BookingId
 
         c.setFont("Helvetica-Bold", 13)
-        c.drawString(50, 750, "BOOKING ID")   #BookingId\
-        c.drawString(50, 730, "STATUS")   #Payment Status
-        c.drawString(160, 750, ":  " + str(booking["Booking Id"]))
-        c.drawString(160, 730, ":  " + str(booking["Payment Status"]))
+        c.drawString(50, 740, "BOOKING ID")   #BookingId\
+        c.drawString(50, 720, "STATUS")   #Payment Status
+        c.drawString(160, 740, ":  " + str(booking["Booking Id"]))
+        c.drawString(160, 720, ":  " + str(booking["Payment Status"]))
         c.setFont("Helvetica", 12)
-        c.drawString(50, 690 + distance, "Name")
-        c.drawString(50, 675 + distance, "Emai")
-        c.drawString(50, 660 + distance, "Phone Number")
-        c.drawString(50, 645 + distance, "Date Of Order")
-        c.drawString(50, 630 + distance, "Date Of Visit")
-        c.drawString(160, 690 + distance, ":  " + str(customer["Name"]))
-        c.drawString(160, 675 + distance, ":  " + str(customer["Email"]))
-        c.drawString(160, 660 + distance, ":  " + str(customer["Phone Number"]))
-        c.drawString(160, 645 + distance, ":  " + str(booking["Date Of Order"]))
-        c.drawString(160, 630 + distance, ":  " + str(order["Date Of Visit"]))
+        c.drawString(50, 680 + distance, "Name")
+        c.drawString(50, 665 + distance, "Emai")
+        c.drawString(50, 650 + distance, "Phone Number")
+        c.drawString(50, 635 + distance, "Date Of Order")
+        c.drawString(50, 620 + distance, "Date Of Visit")
+        c.drawString(160, 680 + distance, ":  " + str(customer["Name"]))
+        c.drawString(160, 665 + distance, ":  " + str(customer["Email"]))
+        c.drawString(160, 650 + distance, ":  " + str(customer["Phone Number"]))
+        c.drawString(160, 635 + distance, ":  " + str(booking["Date Of Order"]))
+        c.drawString(160, 620 + distance, ":  " + str(order["Date Of Visit"]))
 
 
         c.setFont("Helvetica-Bold", 14)
@@ -87,7 +105,7 @@ class FinishBookingManager:
             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ])
         table.setStyle(style)
@@ -103,7 +121,8 @@ class FinishBookingManager:
         table2 = Table(table_detail2, colWidths=[420, 75])
         style2 = TableStyle([
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'RIGHT')
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige)
         ])
         table2.setStyle(style2)
         table2.wrapOn(c, 0, 0)
