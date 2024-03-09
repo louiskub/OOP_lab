@@ -146,7 +146,8 @@ def show_all_booking(member_id: int):
             "visit_date": booking.order.visit_date
         })
     if len(booking_detail) > 0 :
-        booking_detail.sort(key = lambda item: item['detail'])
+        booking_detail.sort(key = lambda item: item['visit_date'])
+    #print(booking_detail)
     return booking_detail 
     
 # @app.get('/root')

@@ -114,15 +114,17 @@ def get_order_detail(member_id):
         order_discount = order["discount"]
 
         for order_detail in order["order_detail"]:
-            item_name = order_detail["Item Name"]
-            price = order_detail["Price"]
-            subtotal = order_detail["Subtotal"]
-            amount = order_detail["Qty"]
+            item_name = order_detail["item"]
+            name = item_name["name"]
+            price = item_name["price"]
+            # size = item_name["size"]
+            subtotal = order_detail["total_price"]
+            amount = order_detail["amount"]
             item_type = ""  # ใส่ตามข้อมูลใน order_detail ที่ได้รับจาก FastAPI
 
             order_label = ttk.Label(
                 Order_detail_frame,
-                text=f"Item Name: {item_name}, Type: {item_type}, Amount: {amount}, Price: {price}, Subtotal: {subtotal}",
+                text=f"Item Name: {name}, Size: {item_type}, Amount: {amount}, Price: {price}, Subtotal: {subtotal}",
                 font=("Helvetica", 14),
                 bootstyle="dark",
             )
@@ -162,7 +164,7 @@ def get_order_detail_total(member_id):
 Contact_Detail = ttk.Label(
     frame_home, text="Contact Detail", font=("Helvetica", 18), bootstyle="info"
 )
-Contact_Detail.grid(pady=10)
+Contact_Detail.pack(pady=10)
 
 Contact_Detail_Frame = ttk.Frame(frame_home, bootstyle="light")
 Contact_Detail_Frame.pack(pady=10)
@@ -278,11 +280,11 @@ cancel_order3.pack(pady=20, padx=2, ipadx=1)
 ############################################################################################################################
 
 
-get_order_detail("100001")
+get_order_detail(100001)
 
 
-get_order_detail_total("100001")
-get_member_detail("100001")
+get_order_detail_total(100001)
+get_member_detail(100001)
 
 
 home = ttk.Button(

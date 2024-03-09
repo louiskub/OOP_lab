@@ -55,6 +55,8 @@ async def delete_todo(id: int) -> dict:
         "data": f"This Todo with id {id} is not found!"
     }
 
+if __name__ == '__main__':
+    uvicorn.run("fastapi_prac:app", host="127.0.0.1", port=3838, log_level="info")
 
 
 # @app.get("/")

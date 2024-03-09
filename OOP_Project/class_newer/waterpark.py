@@ -247,7 +247,7 @@ class WaterPark:
             return "please select some service"
         return {
             "booking_id": booking.id,
-            "amount": str(booking.order.total),
+            "amount": booking.order.total,
             "payment_method": payment_method
         }
     

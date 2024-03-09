@@ -39,7 +39,7 @@ class Member:
 
     __id = 100000
 
-    def __init__(self, name, email, phone_no, birthday, password):
+    def __init__(self, name, email, phone_no: str, birthday, password):
         self.__name = name
         self.__email = email
         self.__id = Member.__id
