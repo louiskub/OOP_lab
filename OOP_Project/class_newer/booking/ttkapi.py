@@ -4,7 +4,6 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import requests
 
-main_api = "http://10.66.11.191:3838"
 
 root = ttk.Window(themename="superhero")
 root.geometry('1920x1080')
@@ -14,9 +13,9 @@ my_style = ttk.Style(theme="flatly")
 
 member_id = 100001
 def get_all_services(member_id = ""):
-    api = main_api + f"/{member_id}/services"
+    api = f"http://127.0.0.1:8000/{member_id}/services"
     if member_id == "":
-        api = main_api + f"/services"
+        api = f"http://127.0.0.1:8000/services"
     req = requests.get(api)
     if req.status_code != 200:
         return "error"
@@ -25,7 +24,7 @@ def get_all_services(member_id = ""):
         print(key, val)
 
 def get_show_all_booking(member_id):
-    api = main_api + f"/{str(member_id)}/show_all_booking"
+    api = f"http://127.0.0.1:8000/{str(member_id)}/show_all_booking"
     req = requests.get(api)
     if req.status_code != 200:
         return "error"
@@ -33,7 +32,7 @@ def get_show_all_booking(member_id):
     #api = f"http://127.0.0.1:8000/{member_id}/show_all_booking"
     
 def download(member_id, booking_id):
-    api = main_api + f"{str(member_id)}/finish_booking/{str(booking_id)}"
+    api = f"http://127.0.0.1:8000/{str(member_id)}/finish_booking/{str(booking_id)}"
     req = requests.get(api, stream=True)
     try:
         req.json()

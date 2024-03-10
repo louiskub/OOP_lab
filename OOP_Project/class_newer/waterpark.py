@@ -79,13 +79,6 @@ class WaterPark:
                 return booking
         return None
 
-    def search_transaction_from_id(self, id): # find instance of payment transaction
-        for transaction in self.__transaction_list:
-            print(transaction.id)
-            if transaction.id == id:
-                return transaction
-        return None
-
     def find_item(self, daily_stock, item: dict): # find instance of selected item
         item = item.dict()
         if item["name"] == None:
@@ -172,7 +165,7 @@ class WaterPark:
         if selected_date == None:
             return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
         if member == None:
-            return "Invalid member id."
+            return "Member not found."
         order = member.get_order_from_visit_date(selected_date)
         if order == None:
             return "Order not found."
@@ -198,10 +191,12 @@ class WaterPark:
         date = self.format_str_to_date(date)
         if date == None : 
             return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
+        if member == None:
+            return "Member not found."
         if member.order == None :
-            return "Please Select Some Service"
+            return "Please select some service."
         if member.order.visit_date != date : 
-            return "Invalid order date"
+            return "Invalid order date."
         
         coupon = self.search_promotion_from_code(info["code"].upper())
         order = member.order
@@ -213,15 +208,18 @@ class WaterPark:
             if coupon.min_purchase > order.cal_purchase_amount(): 
                 return "The purchase amount is not enough."
         order.promotion = coupon
+        order.cal_total()
         return "Coupon successfully used!" 
     
     # Show member info and order detail.
     def show_confirm(self, member_id: int):
         member = self.search_member_from_id(member_id)
+        if member == None:
+            return "Member not found."
         if member.order == None: 
-            return "Not found order"
+            return "Order not found."
         if member.order.total == 0:
-            return "please select some service"
+            return "Please select some service."
         if member.booking_temp != None:
             if member.order == member.booking_temp.order:
                 member.booking_temp.booking_date = date.today()
@@ -238,11 +236,13 @@ class WaterPark:
     # Show booking id and info that must be filled in for payment.
     def show_payment(self, member_id: int, payment_method: str):
         member = self.search_member_from_id(member_id)
+        if member == None:
+            return "Member not found."
         booking = member.booking_temp
         if booking == None:
             return "Booking not found."
         if booking.order.total == 0:
-            return "please select some service"
+            return "Please select some service."
         return {
             "booking_id": booking.id,
             "amount": booking.order.total,
@@ -258,16 +258,18 @@ class WaterPark:
     
     def paid(self, member_id: int, info, payment_method): # confirm payment
         member = self.search_member_from_id(member_id)
-        if member == None : return "Member not found."
+        if member == None:
+            return "Member not found."
         booking = member.booking_temp
         if booking == None :
-            return "booking not found"
+            return "Booking not found."
         if booking.order.total == 0:
-            return "please select some service"
+            return "Please select some service."
         order = booking.order
         date = order.visit_date
         dailystock = self.search_daily_stock_from_date(date)
-    
+        if dailystock == None:
+            return "Not available date. Please select a new date."
         if self.is_available(order, dailystock) == True:
             self.update_dailystock(order, dailystock)
             payment_method = deepcopy(self.__payment_list[payment_method]) # Bankpayment
@@ -295,7 +297,7 @@ class WaterPark:
         member = self.search_member_from_id(member_id)
         booking_detail = []
         if member == None:
-            return "Member Not found"
+            return "Member not found."
         for booking in member.booking_list:
             booking_detail.append({
                 "booking_id": booking.id,
@@ -306,7 +308,7 @@ class WaterPark:
     def payment_success(self, member_id, booking_id):
         member = self.search_member_from_id(member_id)
         if member == None:
-            return "Member not found"
+            return "Member not found."
         booking = self.search_booking_from_member(member, booking_id)
         if booking == None:
             return "Booking not found"
@@ -315,9 +317,9 @@ class WaterPark:
     def download_finish_booking(self, member_id, booking_id): # show complete booking
         member = self.search_member_from_id(member_id)
         if member == None:
-            return "Not found this member."
+            return "Member not found."
         if self.search_booking_from_member(member, booking_id) == None:
-            return "Not found this booking."
+            return "Booking not found."
         return self.__finish_booking_manager.view_finish_booking(booking_id)
     
     def booking_to_pdf(self, member, booking):

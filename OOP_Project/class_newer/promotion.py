@@ -22,14 +22,6 @@ class PercentCoupon(Promotion):
     def code(self):
         return self.__code
     
-    # @property
-    # def min_purchase(self):
-    #     return self.__min_purchase # optional
-    
-    # @property
-    # def max_discount(self):     # optional
-    #     return self.__max_discount
-
     def get_discount(self, total):
         discount = int(self.__discount * total)
         return discount if discount <= self.__max_discount else self.__max_discount
