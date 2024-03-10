@@ -72,13 +72,6 @@ class WaterPark:
             if promotion.code == code:
                 return promotion
         return None
-
-    # def search_booking_from_id(self, id) -> Booking:   # find instance of booking
-    #     for member in self.__member_list:
-    #         for booking in member.booking_list:
-    #             if booking.id == id:
-    #                 return booking
-    #     return None
     
     def search_booking_from_member(self, member, booking_id): # find instance of booking
         for booking in member.booking_list:
@@ -148,25 +141,30 @@ class WaterPark:
             return error
         self.add_member(Member(name, email, phone_number, birthday, password))
         return "Membership registration completed."
-
-    # Get services information.
-    # def get_cabana_in_zone(self, date):
-    #     daily_stock = self.search_daily_stock_from_date(date)
-    #     cabana_in_zone = {}
-    #     for zone in self.__zone_list:
-    #         cabana_in_zone[zone] = daily_stock.get_cabana_in_zone(zone)
-    #     return cabana_in_zone 
+    
+    # All Services
+    def get_all_services(self):
+        return self.get_services_in_stock(self.__stock)
+    
+    def get_services_in_date(self, date):
+        selected_date = self.format_str_to_date(date)
+        if selected_date == None:
+            return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
+        daily_stock = self.search_daily_stock_from_date(selected_date)
+        if daily_stock == None:
+            return "Not available date. Please select a new date."
+        return self.get_services_in_stock(daily_stock)
     
     def get_services_in_stock(self, stock):
         services = {}
         services["ticket"] = [ticket.to_dict() for ticket in stock.ticket_list]
         services["cabana"] = {}
         for zone in self.__zone_list:
-            services["cabana"][zone] = [cabana.to_dict() for cabana in stock.get_cabana_in_zone(zone)]
+            services["cabana"][zone] =  [cabana.to_dict() for cabana in stock.get_cabana_in_zone(zone)]
         services["locker"] = [locker.to_dict() for locker in stock.locker_list]
         services["towel"] = stock.towel.to_dict()
-        return services          
-    
+        return services
+
     # Add or Reduce item from order.
     def manage_order(self, member_id: int, date: str, items, type): # type A = Add, R = Reduce
         selected_date = self.format_str_to_date(date)
@@ -262,19 +260,13 @@ class WaterPark:
         member = self.search_member_from_id(member_id)
         if member == None : return "Member not found."
         booking = member.booking_temp
+        if booking == None :
+            return "booking not found"
+        if booking.order.total == 0:
+            return "please select some service"
         order = booking.order
         date = order.visit_date
         dailystock = self.search_daily_stock_from_date(date)
-        if booking == None:
-            return "Booking not found."
-        if booking.order.total == 0:
-            return "please select some service"
-        
-        # for detail in order.order_detail:
-        #     if dailystock.is_available(detail.item, detail.amount) == False:
-        #         member.booking_temp = None
-        #         member.order = None
-        #         return "Your order is no longer available."
     
         if self.is_available(order, dailystock) == True:
             self.update_dailystock(order, dailystock)
@@ -298,11 +290,29 @@ class WaterPark:
     def update_dailystock(self, order, dailystock): # update stock
         for detail in order.order_detail:
             dailystock.update_item(detail.item, detail.amount)
-        
-    def show_success_payment(self):
-        pass
     
-    def show_finish_booking(self, member_id, booking_id): # show complete booking
+    def show_all_booking(self, member_id):
+        member = self.search_member_from_id(member_id)
+        booking_detail = []
+        if member == None:
+            return "Member Not found"
+        for booking in member.booking_list:
+            booking_detail.append({
+                "booking_id": booking.id,
+                "visit_date": booking.order.visit_date
+            })
+        return booking_detail 
+
+    def payment_success(self, member_id, booking_id):
+        member = self.search_member_from_id(member_id)
+        if member == None:
+            return "Member not found"
+        booking = self.search_booking_from_member(member, booking_id)
+        if booking == None:
+            return "Booking not found"
+        return "Payment Successful"
+    
+    def download_finish_booking(self, member_id, booking_id): # show complete booking
         member = self.search_member_from_id(member_id)
         if member == None:
             return "Not found this member."
@@ -310,7 +320,7 @@ class WaterPark:
             return "Not found this booking."
         return self.__finish_booking_manager.view_finish_booking(booking_id)
     
-    def booking_to_pdf(self, member, bookin):
+    def booking_to_pdf(self, member, booking):
         booking = member.booking_temp
         order = booking.order
         return {

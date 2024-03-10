@@ -62,22 +62,21 @@ async def add_member(member: AddMember) :
 async def login(login: Login) :
     return {"Result": system.login_member(login.email, login.password)}
 
-""""""
+"""all services"""
+# GET -- > Get all services.
 @app.get("/{member_id}/services", tags = ['Services'])
-async def show_all_services():
-    return {"Services": system.get_services_in_stock(system.get_stock())}
+async def show_all_services(member_id: int = 0):
+    return {"Services": system.get_all_services()}
 
 # GET -- > Get services after selected visit date.
 @app.get("/{member_id}/services/{date}", tags = ['Services'])
-def show_services_in_date(date: str):
-    selected_date = system.format_str_to_date(date)
-    daily_stock = system.search_daily_stock_from_date(selected_date)
-    return {f"Services in {selected_date}": system.get_services_in_stock(daily_stock)}
+def show_services_in_date(date: str, member_id: int = 0):
+    return {f"Services in {date}": system.get_services_in_date(date)}
+
 
 # POST-- > Add item to order.
 @app.post("/{member_id}/services/{date}", tags = ['Services'])
 async def add_order(member_id: int, date: str, item: Item):
-    #print(date)
     return system.manage_order(member_id, date, item, 'A')
 
 # DELETE-- > Remove item from order.
@@ -116,17 +115,12 @@ def card_paid(member_id: int, info: CardInput):
 
 @app.get('/{member_id}/payment_success/{booking_id}', tags = ['finish_booking'])
 def payment_success(member_id: int, booking_id: int):
-    return {
-        "Hello": "World"
-    }
+    return system.payment_success(member_id, booking_id)
 
 #download pdf via file ---> click button to download pdf
-@app.get('/{member_id}/finish_booking/{booking_id}', tags = ['finish_booking'])
+@app.get('/{member_id}/finish_booking/{booking_id}', tags = ['download_booking'])
 def show_finish_booking(member_id: int, booking_id: int):
-    from bookingmanager import FinishBookingManager
-    f = FinishBookingManager()
-    return f.view_finish_booking(booking_id)
-    #return system.show_finish_booking(int(member_id), int(booking_id))
+    return system.download_finish_booking(int(member_id), int(booking_id))
 
 # view member info
 @app.get('/{member_id}/show_member_info', tags=["View Info"])
@@ -137,19 +131,7 @@ def show_member_info(member_id: int):
 # view all booking 
 @app.get('/{member_id}/show_all_booking', tags=["View Info"])
 def show_all_booking(member_id: int):
-    member = system.search_member_from_id(member_id)
-    booking_detail = []
-    if member == None:
-        return "Member Not found"
-    for booking in member.booking_list:
-        booking_detail.append({
-            "booking_id": booking.id,
-            "visit_date": booking.order.visit_date
-        })
-    if len(booking_detail) > 0 :
-        booking_detail.sort(key = lambda item: item['visit_date'])
-    #print(booking_detail)
-    return booking_detail 
+    return system.show_all_booking(member_id)
     
 # @app.get('/root')
 # def root():
