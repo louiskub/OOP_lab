@@ -60,6 +60,12 @@ class WaterPark:
                 return member
         return None 
     
+    def search_member_from_email(self, email):
+        for member in self.__member_list:
+            if email == member.email:
+                return member.id
+        return None 
+
     def search_daily_stock_from_date(self, date): # find instance of daily stock 
         for daily in self.__daily_stock_list:
             if date == daily.date:
@@ -115,7 +121,7 @@ class WaterPark:
         for member in self.__member_list:
             if member.verify_member(email, password) != None:
                 # member_id = member.verify_member(email, password).id
-                return member.id # return member id
+                return "Login successful."
         return "Email or password is incorrect."  
     
     # Subscription
@@ -123,15 +129,12 @@ class WaterPark:
         for member in self.__member_list:
             if email == member.email or phone_number == member.phone_no:
                 return "You are already a member." 
-        error = {}
         if Member.check_email(email) == False:
-            error["email"] = "Fill the correct email."
-        if Member.check_phone_number(phone_number) == False and len(phone_number) != 10:
-            error["phone"] = "Fill the correct phone number."
-        if Member.check_password(password) == False and len(password) < 8:
-            error["password"] = "Please use a password with at least 8 characters and only the letters 0-9, a-z, A-Z, (.) or (_)."
-        if len(error) > 0:
-            return error
+            return "Fill the correct email."
+        if Member.check_phone_number(phone_number) == False or len(phone_number) != 10:
+            return "Fill the correct phone number."
+        if Member.check_password(password) == False or len(password) < 8:
+            return "Please use a password with at least 8 characters and only the letters 0-9, a-z, A-Z, (.) or (_)."
         self.add_member(Member(name, email, phone_number, birthday, password))
         return "Membership registration completed."
     
