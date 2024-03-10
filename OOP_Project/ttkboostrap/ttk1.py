@@ -2,10 +2,24 @@ from tkinter import *
 import ttkbootstrap as ttk
 from datetime import date
 import requests
+from PIL import Image, ImageTk
 
 root = ttk.Window(themename="minty")
 root.title("DKUB WATERPARK")
-root.geometry("1600x900")
+root.geometry("1920x1080")
+
+image_path = "6963703.jpg"  # Provide the path to your image file
+image_path2 ="Bank.jpg"
+image_path3 ="DKUB_logo.jpg"
+image = Image.open(image_path)
+image2 = Image.open(image_path2)
+image3 = Image.open(image_path3)
+resized_image = image.resize((120, 120), Image.BICUBIC)  # Adjust the size as needed
+image = ImageTk.PhotoImage(resized_image)
+resized_image2 = image2.resize((120, 120), Image.BICUBIC)  # Adjust the size as needed
+image2 = ImageTk.PhotoImage(resized_image2)
+resized_image3 = image3.resize((1000, 150), Image.BICUBIC)  # Adjust the size as needed
+image3 = ImageTk.PhotoImage(resized_image3)
 
 # สร้างตัวแปร global สำหรับแสดงข้อมูล
 name_label = None
@@ -48,22 +62,23 @@ def show_page(page, current_frame):
 ############################################################################################################
 
 
-def coupon_use(member_id):
-    API_ENDPOINT = f"http://127.0.0.1:8000/{member_id}/services"
+def coupon_use(member_id,date):
+    API_ENDPOINT = f"http://127.0.0.1:8000/{member_id}/services/{date}"
+    print(promocode)
     response = requests.put(
-        API_ENDPOINT, json={"info": {"coupon_code": "your_coupon_code"}}
+        API_ENDPOINT, json={"code": promocode}
     )
-
     if response.status_code == 200:
-        print("Coupon added successfully")
-
+         data = response.json()  # แก้ไขตรงนี้
+         print("Response Data:", data)
     else:
         print("Error:", response.text)
+    
+    root.after(10000, lambda: coupon_use(member_id,date))
 
 
 def speak():
     my_label.config(text=f"You typed : {PromotioncodeEntry.get()}")
-
 
 promotioncode = ttk.Frame(frame_order, bootstyle="light")
 promotioncode.pack(pady=5)
@@ -78,6 +93,7 @@ PromotioncodeEntry = ttk.Entry(
 )
 PromotioncodeEntry.pack(pady=5, padx=5)
 
+promocode = PromotioncodeEntry.get()
 
 my_button = ttk.Button(
     promotioncode, text="CONFRIM CODE", bootstyle="dark", command=speak
@@ -110,21 +126,22 @@ def get_order_detail(member_id):
         data = response.json()
         booking = data["booking"]
         order = booking["order"]
-        order_total = order["total"]
-        order_discount = order["discount"]
+
 
         for order_detail in order["order_detail"]:
             item_name = order_detail["item"]
             name = item_name["name"]
             price = item_name["price"]
-            # size = item_name["size"]
             subtotal = order_detail["total_price"]
             amount = order_detail["amount"]
-            item_type = ""  # ใส่ตามข้อมูลใน order_detail ที่ได้รับจาก FastAPI
+            if "size" in item_name:
+                size = item_name["size"]
+            else:
+                size = "None"
 
             order_label = ttk.Label(
                 Order_detail_frame,
-                text=f"Item Name: {name}, Size: {item_type}, Amount: {amount}, Price: {price}, Subtotal: {subtotal}",
+                text=f"Item Name: {name},    Size: {size},    Amount: {amount},     Price: {price},       Subtotal: {subtotal}",
                 font=("Helvetica", 14),
                 bootstyle="dark",
             )
@@ -139,6 +156,7 @@ def get_order_detail(member_id):
 
 
 ############################################################################################################
+
 
 
 def get_order_detail_total(member_id):
@@ -159,70 +177,81 @@ def get_order_detail_total(member_id):
     root.after(10000, lambda: get_order_detail_total(member_id))
 
     # สร้าง Label สำหรับแสดงข้อมูล
+    
 
+# Contact Detail
 
 Contact_Detail = ttk.Label(
-    frame_home, text="Contact Detail", font=("Helvetica", 18), bootstyle="info"
+    frame_home,image=image3,
 )
 Contact_Detail.pack(pady=10)
 
-Contact_Detail_Frame = ttk.Frame(frame_home, bootstyle="light")
-Contact_Detail_Frame.pack(pady=10)
+Contact_Detail = ttk.Label(
+    frame_home, text="Contact Detail", font=("Helvetica", 18), foreground="green"
+)
+Contact_Detail.pack(pady=10)
+
+Contact_Detail_Frame = ttk.Frame(frame_home)
+Contact_Detail_Frame.pack(pady=10, ipadx=100)
 
 name_label = ttk.Label(
-    Contact_Detail_Frame, text="Name :", font=("Helvetica", 14), bootstyle="dark"
+    Contact_Detail_Frame, text="Name :", font=("Helvetica", 14)
 )
-name_label.pack(pady=10, padx=10, ipadx=300)
+name_label.pack(pady=5, padx=5)
 
 email_label = ttk.Label(
-    Contact_Detail_Frame, text="Email :", font=("Helvetica", 14), bootstyle="dark"
+    Contact_Detail_Frame, text="Email :", font=("Helvetica", 14)
 )
-email_label.pack(pady=10, padx=10, ipadx=300)
+email_label.pack(pady=5, padx=5)
 
 telephone_label = ttk.Label(
-    Contact_Detail_Frame, text="Telephone :", font=("Helvetica", 14), bootstyle="dark"
+    Contact_Detail_Frame, text="Telephone :", font=("Helvetica", 14)
 )
-telephone_label.pack(pady=10, padx=10, ipadx=280)
+telephone_label.pack(pady=5, padx=5)
 
 date_of_visit_label = ttk.Label(
     Contact_Detail_Frame,
     text="Date of Visit :",
-    font=("Helvetica", 14),
-    bootstyle="dark",
+    font=("Helvetica", 14)
 )
-date_of_visit_label.pack(pady=10, padx=10, ipadx=275)
+date_of_visit_label.pack(pady=5, padx=5)
 
+# Order Detail
 Order_detail = ttk.Label(
-    frame_home, text="Order Detail", font=("Helvetica", 18), bootstyle="info"
+    frame_home, text="Order Detail", font=("Helvetica", 18), foreground="green"
 )
 Order_detail.pack(pady=10)
 
-Order_detail_frame = ttk.Frame(frame_home, bootstyle="light")
+Order_detail_frame = ttk.Frame(frame_home)
 Order_detail_frame.pack(pady=10)
 
-Order_detail_frame1 = ttk.Frame(frame_home, bootstyle="light")
+Order_detail_frame1 = ttk.Frame(frame_home)
 Order_detail_frame1.pack(pady=10)
 
 Sub_Total = ttk.Label(
-    Order_detail_frame1, text="Sub Total :", font=("Helvetica", 14), bootstyle="dark"
+    Order_detail_frame1, text="Sub Total :", font=("Helvetica", 14)
 )
-Sub_Total.pack(pady=10, padx=10, ipadx=290)
+Sub_Total.pack(pady=5, padx=5)
 
 Discount = ttk.Label(
-    Order_detail_frame1, text="Discount :", font=("Helvetica", 14), bootstyle="dark"
+    Order_detail_frame1, text="Discount :", font=("Helvetica", 14)
 )
-Discount.pack(pady=10, padx=10, ipadx=290)
+Discount.pack(pady=5, padx=5)
 
+# Payment Method
 Payment_Method = ttk.Label(
-    frame_home, text="Payment Method", font=("Helvetica", 18), bootstyle="info"
+    frame_home, text="Payment Method", font=("Helvetica", 18), foreground="green"
 )
 Payment_Method.pack(pady=10)
 
-cancel_order3 = ttk.Button(
-    frame_home, text="BACK", bootstyle="dark", command=lambda: show_page(3, frame_home)
-)
-cancel_order3.pack(pady=20, padx=2, ipadx=1)
+button1 = ttk.Button(frame_home, image=image, command=lambda: show_page(3,frame_home))
+button1.pack(side="left", pady=10, padx=10)
 
+button2 = ttk.Button(frame_home, image=image2, command=lambda: show_page(4,frame_home))
+button2.pack(side="left", pady=10, padx=500)
+
+cancel_order3 = ttk.Button(frame_home, text="BACK", command=lambda: show_page(3, frame_home))
+cancel_order3.pack(side="bottom", pady=100, padx=1)
 
 ################################################################################################################################
 
@@ -244,27 +273,26 @@ def get_member_detail(member_id):
 
 
 Contact_Detail = ttk.Label(
-    frame_view_member, text="Member Detail", font=("Helvetica", 18), bootstyle="info"
-)
+    frame_view_member, text="Member Detail", font=("Helvetica", 18), foreground="green" ,)
 Contact_Detail.pack(pady=10)
 
 Member_detail_frame = ttk.Frame(frame_view_member, bootstyle="light")
-Member_detail_frame.pack(pady=10)
+Member_detail_frame.pack(pady=10,ipadx=100)
 
 Member_name_view = ttk.Label(
-    Member_detail_frame, text="Name :", font=("Helvetica", 14), bootstyle="dark"
+    Member_detail_frame, text="Name :", font=("Helvetica", 14)
 )
-Member_name_view.pack(pady=10, padx=10, ipadx=300)
+Member_name_view.pack(pady=10, padx=10, ipadx=10)
 
 Email_view = ttk.Label(
-    Member_detail_frame, text="Email :", font=("Helvetica", 14), bootstyle="dark"
+    Member_detail_frame, text="Email :", font=("Helvetica", 14)
 )
-Email_view.pack(pady=10, padx=10, ipadx=300)
+Email_view.pack(pady=10, padx=10, ipadx=10)
 
 telephone_view = ttk.Label(
-    Member_detail_frame, text="Telephone :", font=("Helvetica", 14), bootstyle="dark"
+    Member_detail_frame, text="Telephone :", font=("Helvetica", 14)
 )
-telephone_view.pack(pady=10, padx=10, ipadx=280)
+telephone_view.pack(pady=10, padx=10, ipadx=10)
 
 cancel_order3 = ttk.Button(
     Member_detail_frame,
@@ -280,11 +308,11 @@ cancel_order3.pack(pady=20, padx=2, ipadx=1)
 ############################################################################################################################
 
 
-get_order_detail(100001)
+get_order_detail("100001")
 
-
-get_order_detail_total(100001)
-get_member_detail(100001)
+coupon_use("100001","2024-03-15")
+get_order_detail_total("100001")
+get_member_detail("100001")
 
 
 home = ttk.Button(

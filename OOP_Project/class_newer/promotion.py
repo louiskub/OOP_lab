@@ -7,7 +7,9 @@ class Promotion:
 
     def is_expired(self):
         return self.__start_date > date.today() or date.today() > self.__end_date
-
+    def get_discount(self):
+        return
+    
 class PercentCoupon(Promotion):
     def __init__(self, start_date, end_date, code, discount, max_discount = 3000):
         super().__init__(start_date, end_date)
@@ -47,7 +49,7 @@ class AmountCoupon(Promotion):
     def min_purchase(self):
         return self.__min_purchase
     
-    def get_discount(self, total):
+    def get_discount(self):
         return self.__discount
     
 # if '__main__' == __name__:

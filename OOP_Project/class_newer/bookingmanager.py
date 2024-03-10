@@ -10,7 +10,6 @@ from fastapi.responses import FileResponse
 from reportlab.graphics import renderPDF
 from svglib.svglib import svg2rlg
 import os, segno, smtplib
-
 class FinishBookingManager:
     def __init__(self):
         self.__path_now = os.getcwd()
@@ -58,8 +57,8 @@ class FinishBookingManager:
         c.drawImage(qrcode_path, 393, 602)
 
         drawing = svg2rlg(self.__logo_path)        
-        scaled_drawing = self.svg_scale(drawing, 0.16)
-        renderPDF.draw( scaled_drawing, c, 40, 770 )
+        scaled_drawing = self.svg_scale(drawing, 0.14)
+        renderPDF.draw( scaled_drawing, c, 40, 769 )
         c.setFillColor(colors.black)
         
         #c.setFont("Helvetica-Bold", 28)

@@ -49,7 +49,9 @@ class Order:
             if self.promotion.min_purchase > total :
                 self.promotion = None
                 return 0
+            return self.promotion.get_discount()
         return self.promotion.get_discount(total)
+        
     
     # Calculate total purchase after discount.
     def cal_total(self):
