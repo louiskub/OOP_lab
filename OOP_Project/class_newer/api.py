@@ -58,7 +58,7 @@ async def add_member(member: AddMember) :
     return {"Result": system.become_member(member.name, member.email, member.phone_no, member.birthday, member.password)}
 
 """log_in"""   
-@app.post("/login", tags = ['Login']) #login เข้าสู่ระบบ โดยถ้าอีเมลกับรหัส๔ูกจะ responseกลับว่า 'Login successful'
+@app.post("/login", tags = ['Login']) #login เข้าสู่ระบบ โดยถ้าอีเมลกับรหัส๔ูกจะ responseกลับ member_id
 async def login(login: Login) :
     return {"Result": system.login_member(login.email, login.password)}
 
