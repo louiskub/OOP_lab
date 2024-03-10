@@ -285,7 +285,11 @@ class WaterPark:
             member.booking_temp, member.order = None, None
             self.__finish_booking_manager.create_pdf(booking_info)
             self.__finish_booking_manager.send_email(member.email, member.name, booking.id)
-            return f"Pay success {member.id}, {booking.id}"
+            return {
+                "status": "Pay success.",
+                "booking_id": booking.id,
+                "member_id": member.id
+            }
         else:
             member.booking_temp = None
             member.order = None
@@ -307,15 +311,6 @@ class WaterPark:
                 "visit_date": booking.order.visit_date
             })
         return booking_detail 
-
-    def payment_success(self, member_id, booking_id):
-        member = self.search_member_from_id(member_id)
-        if member == None:
-            return "Member not found."
-        booking = self.search_booking_from_member(member, booking_id)
-        if booking == None:
-            return "Booking not found"
-        return "Payment Successful"
     
     def download_finish_booking(self, member_id, booking_id): # show complete booking
         member = self.search_member_from_id(member_id)

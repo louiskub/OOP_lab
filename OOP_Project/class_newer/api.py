@@ -112,11 +112,6 @@ def bank_paid(member_id: int, info: BankInput):
 def card_paid(member_id: int, info: CardInput):
     return system.paid(member_id, info, 1)
 
-
-@app.get('/{member_id}/payment_success/{booking_id}', tags = ['finish_booking'])
-def payment_success(member_id: int, booking_id: int):
-    return system.payment_success(member_id, booking_id)
-
 #download pdf via file ---> click button to download pdf
 @app.get('/{member_id}/finish_booking/{booking_id}', tags = ['download_booking'])
 def show_finish_booking(member_id: int, booking_id: int):

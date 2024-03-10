@@ -44,7 +44,6 @@ class FinishBookingManager:
     def create_pdf(self, info: dict):
         distance = 15
         row_height = 19
-        move_down_y = 5
         customer, booking, order = info["Customer"], info["Booking"], info["Order"]
 
         target_path = self.__file_path
