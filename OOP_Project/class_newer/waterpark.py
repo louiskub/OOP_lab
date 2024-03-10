@@ -12,11 +12,11 @@ from copy import deepcopy
 
 class WaterPark:
     def __init__(self):
-        self.__name = "Rama"
+        self.__name = "DKUB"
         self.__stock = Stock()
         self.__daily_stock_list = create_daily_stock()
         self.__zone_list = ["Wave Pool", "Activity and Relax", "Hill", "Family"]
-        self.member_list = create_member()
+        self.__member_list = create_member()
         self.__promotion_list = create_promotion()
         self.__payment_list = [BankPayment(), CardPayment()]
         self.__transaction_list = []
@@ -287,6 +287,7 @@ class WaterPark:
             booking_info = self.booking_to_pdf(member, booking)
             member.booking_temp, member.order = None, None
             self.__finish_booking_manager.create_pdf(booking_info)
+            self.__finish_booking_manager.send_email(member.email, member.name, booking.id)
             return f"Pay success {member.id}, {booking.id}"
         else:
             member.booking_temp = None

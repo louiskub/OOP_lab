@@ -3,12 +3,10 @@ from pydantic import BaseModel
 import uvicorn
 from waterpark import WaterPark
 
-if __name__ == '__main__':
-    system = WaterPark()
-    uvicorn.run("api:app", host="10.66.11.191", port=3838, log_level="info")
-
+system = WaterPark()
 app = FastAPI()
-
+# uvicorn api:app --host 10.66.11.191 --port 3838
+# uvicorn api:app
 class CardInput(BaseModel):
     card_no: int
     card_pin: int
@@ -156,25 +154,4 @@ def show_all_booking(member_id: int):
 # @app.get('/root')
 # def root():
 #     return date(2002, 5, 15)
-
-
-# http://127.0.0.1:8000/100/finish_booking/100000
-# # from fastapi.responses import RedirectResponse
-# # import uvicorn
-
-# # @app.get('/')
-# # def rot():
-# #     return "Hello"
-
-# # @app.get('/{booking_id}')
-# # def root(booking_id: str):
-# #     print(booking_id)
-# #     RedirectResponse('/', status_code=200)
-
-# # @app.post('/{booking_id}')
-# # def rooot(booking_id):
-# #     return str(booking_id)
-
-# # # if __name__ == '__main__':
-# # #     uvicorn.
 
