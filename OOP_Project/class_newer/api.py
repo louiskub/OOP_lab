@@ -1,14 +1,12 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-# from fastapi.responses import RedirectResponse
-# from service import Cabana, Towel, Ticket, Locker 
-# from order import Order, OrderDetail
-# from member import Member
-# from stock import Stock, DailyStock
-# from datetime import datetime, timedelta
-# from datetime import date
+import uvicorn
+from waterpark import WaterPark
 
-from waterpark import *
+if __name__ == '__main__':
+    system = WaterPark()
+    uvicorn.run("api:app", host="10.66.11.191", port=3838, log_level="info")
+
 app = FastAPI()
 
 class CardInput(BaseModel):
@@ -41,16 +39,19 @@ class Item(BaseModel):
     zone: str | None = None
     id: str | None = None
 
-system = WaterPark()
-member = create_member()
-promotion = create_promotion()
-#system.add_member(member)
-mem = member[1]
-order = create_order()
-#print(waterpark.get_member_list())
-#mem.add_booking(booking)
-print(mem.id)
-mem.order = order
+
+# print(system.member_list[0].id, end="  ")
+# print(system.member_list[1].id, end="  ")
+# print(system.member_list[2].id)
+# member = create_member()
+# promotion = create_promotion()
+# #system.add_member(member)
+# mem = member[1]
+# order = create_order()
+# #print(waterpark.get_member_list())
+# #mem.add_booking(booking)
+# print(mem.id)
+# mem.order = order
 
 
 """becom_member"""
@@ -140,6 +141,8 @@ def show_member_info(member_id: int):
 def show_all_booking(member_id: int):
     member = system.search_member_from_id(member_id)
     booking_detail = []
+    if member == None:
+        return "Member Not found"
     for booking in member.booking_list:
         booking_detail.append({
             "booking_id": booking.id,

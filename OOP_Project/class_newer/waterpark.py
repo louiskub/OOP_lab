@@ -16,7 +16,7 @@ class WaterPark:
         self.__stock = Stock()
         self.__daily_stock_list = create_daily_stock()
         self.__zone_list = ["Wave Pool", "Activity and Relax", "Hill", "Family"]
-        self.__member_list = create_member()
+        self.member_list = create_member()
         self.__promotion_list = create_promotion()
         self.__payment_list = [BankPayment(), CardPayment()]
         self.__transaction_list = []
@@ -479,3 +479,4 @@ def create_order():
 # # if "__main__" == __name__ :
     
 # #     # create_booking()
+#system = WaterPark()

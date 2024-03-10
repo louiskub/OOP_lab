@@ -4,6 +4,8 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import requests
 
+main_api = "http://10.66.11.191:3838"
+
 root = ttk.Window(themename="superhero")
 root.geometry('1920x1080')
 #style
@@ -12,9 +14,9 @@ my_style = ttk.Style(theme="flatly")
 
 member_id = 100001
 def get_all_services(member_id = ""):
-    api = f"http://127.0.0.1:8000/{member_id}/services"
+    api = main_api + f"/{member_id}/services"
     if member_id == "":
-        api = f"http://127.0.0.1:8000/services"
+        api = main_api + f"/services"
     req = requests.get(api)
     if req.status_code != 200:
         return "error"
@@ -23,7 +25,7 @@ def get_all_services(member_id = ""):
         print(key, val)
 
 def get_show_all_booking(member_id):
-    api = f"http://127.0.0.1:8000/{str(member_id)}/show_all_booking"
+    api = main_api + f"/{str(member_id)}/show_all_booking"
     req = requests.get(api)
     if req.status_code != 200:
         return "error"
@@ -31,7 +33,7 @@ def get_show_all_booking(member_id):
     #api = f"http://127.0.0.1:8000/{member_id}/show_all_booking"
     
 def download(member_id, booking_id):
-    api = f"http://127.0.0.1:8000/{str(member_id)}/finish_booking/{str(booking_id)}"
+    api = main_api + f"{str(member_id)}/finish_booking/{str(booking_id)}"
     req = requests.get(api, stream=True)
     try:
         req.json()
@@ -45,11 +47,11 @@ def download(member_id, booking_id):
             for chunk in req.iter_content(chunk_size=8192):
                 file.write(chunk)
 
-api = get_show_all_booking(member_id)
-print(api)
-for i in range(len(api)):
+booking = get_show_all_booking(member_id)
+print(booking)
+for i in range(len(booking)):
     l = ttk.Label(root, 
-                text=f"Booking ID : {str(api[i]['booking_id'])}     Date : { str(api[i]['visit_date']) }",  
+                text=f"Booking ID : {str(booking[i]['booking_id'])}     Date : { str(booking[i]['visit_date']) }",  
                 bootstyle="info"
         )
     b = ttk.Button(root, 
