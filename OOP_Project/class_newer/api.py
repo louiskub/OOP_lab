@@ -60,8 +60,7 @@ async def add_member(member: AddMember) :
 """log_in"""   
 @app.post("/login", tags = ['Login']) #login เข้าสู่ระบบ โดยถ้าอีเมลกับรหัส๔ูกจะ responseกลับ member_id
 async def login(login: Login) :
-    return {"Result": system.login_member(login.email, login.password), 
-            "mem_id": system.search_member_from_email(login.email)}
+    return {"Result": system.login_member(login.email, login.password)}
 
 """all services"""
 # GET -- > Get all services.

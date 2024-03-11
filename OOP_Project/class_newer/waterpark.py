@@ -121,7 +121,7 @@ class WaterPark:
         for member in self.__member_list:
             if member.verify_member(email, password) != None:
                 # member_id = member.verify_member(email, password).id
-                return "Login successful."
+                return member.id
         return "Email or password is incorrect."  
     
     # Subscription
