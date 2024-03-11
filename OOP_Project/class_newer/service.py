@@ -3,37 +3,24 @@ class Ticket:
         self.__type = type
         self.__amount_per_ticket = amount_per_ticket
         self.__price = price
-        self.__is_thai = True
 
     @property
     def type(self):
         return self.__type
     
     @property
-    def is_thai(self):
-        return self.__is_thai
-    
-    @property
     def price(self):
-        return self.__price
-    
-    def update_is_thai(self, type): # type F = Foreign, T = Thai
-        if type == 'T':
-            self.__is_thai = True
-        elif type == 'F':
-            self.__is_thai = False
-            self.__price = self.__price + self.__amount_per_ticket * 150
+        return self.__pric
             
     def name(self):
-        return str("Thai " if self.is_thai else "Foreigner ") + self.__type + " Ticket"
+        return self.__type + " Ticket"
     
     def to_dict(self):
         return {
             "name": self.name(),
             "type": self.__type,
             "amount_per_ticket": self.__amount_per_ticket,
-            "price": self.__price,
-            "is_thai": self.__is_thai
+            "price": self.__price
         }
 
 class Cabana:
@@ -47,9 +34,6 @@ class Cabana:
                 self.__price = price
         self.__is_reserve = False
 
-    # def __str__(self):
-    #     return f"Cabana({self.__size}): {self.__zone} Zone"
-    
     @property
     def id(self):
         return self.__id

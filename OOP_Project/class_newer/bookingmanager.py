@@ -139,7 +139,7 @@ class FinishBookingManager:
         encoders.encode_base64(p)
         p.add_header('Content-Disposition', "attachment; filename= %s" % file_name)
 
-        subject = "Test with attachment"
+        subject = "Your tickets to DKUB Water Park"
         body = f"{customer_name} \
 \n\nThank you for your purchasing to DKUB Water Park through our official website. \
 Your payment has been processed and you can find your tickets attached to this email in PDF format. \

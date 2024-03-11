@@ -1,0 +1,9 @@
+member_id = 2130
+
+API = f"http://127.0.0.1:8000/{member_id}/services"
+
+
+print(API)
+member_id = "10000"
+API = f"http://127.0.0.1:8000/{member_id}/services"
+print(API)

@@ -223,6 +223,9 @@ class WaterPark:
             return "Order not found."
         if member.order.total == 0:
             return "Please select some service."
+        if member.order.visit_date < date.today():
+            order = None
+            return "Please select new date."
         if member.booking_temp != None:
             if member.order == member.booking_temp.order:
                 member.booking_temp.booking_date = date.today()
