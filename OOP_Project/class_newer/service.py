@@ -10,7 +10,7 @@ class Ticket:
     
     @property
     def price(self):
-        return self.__pric
+        return self.__price
             
     def name(self):
         return self.__type + " Ticket"

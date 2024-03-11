@@ -120,7 +120,6 @@ class WaterPark:
     def login_member(self, email, password):
         for member in self.__member_list:
             if member.verify_member(email, password) != None:
-                # member_id = member.verify_member(email, password).id
                 return member.id
         return "Email or password is incorrect."  
     
