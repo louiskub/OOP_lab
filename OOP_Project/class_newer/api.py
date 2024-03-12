@@ -65,12 +65,12 @@ async def login(login: Login) :
 """all services"""
 # GET -- > Get all services.
 @app.get("/{member_id}/services", tags = ['Services'])
-async def show_all_services(member_id: int = 0):
+async def show_all_services(member_id: int):
     return {"Services": system.get_all_services()}
 # GET -- > Get services after selected visit date.
 @app.get("/{member_id}/services/{date}", tags = ['Services'])
-def show_services_in_date(date: str, member_id: int = 0):
-    return {f"Services in {date}": system.get_services_in_date(date)}
+def show_services_in_date(date: str, member_id: int):
+    return {f"Services in {date}": system.get_services_in_date(member_id, date)}
 
 
 # POST-- > Add item to order.

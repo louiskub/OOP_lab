@@ -63,16 +63,29 @@ class Order:
         if isinstance(item, Cabana):
             for items in self.__order_detail:
                 if isinstance(items.item, Cabana):
-                    return self.to_dict()
+                    return {
+            "status": "Add success.",
+            "total": self.total,
+            "discount": self.cal_discount()
+        }
         elif isinstance(item, (Locker, Towel, Ticket)):
             for items in self.__order_detail:
                 if items.item == item:
                     items + 1
                     self.cal_total()
-                    return self.to_dict()
+                    return {
+            "status": "Add success.",
+            "total": self.total,
+            "discount": self.cal_discount()
+        }
         self.__order_detail.append(OrderDetail(item)) 
         self.cal_total()  
-        return self.to_dict()
+        return {
+            "status": "Add success.",
+            "total": self.total,
+            "discount": self.cal_discount()
+        }
+
     
     # Reduce item from order.
     def reduce_item(self, item) : # Press the reduce button
@@ -82,8 +95,8 @@ class Order:
                 if items.amount == 0:
                     self.__order_detail.remove(items)
                 self.cal_total()
-                return self.to_dict()
-        return self.to_dict()
+                return "Delete success."
+        return "Delete success."
 
     def order_amount(self, item):
         for items in self.__order_detail:
@@ -105,33 +118,6 @@ class Order:
             "total": self.__total,
             "discount": self.cal_discount()
         }
-    
-    # def check_still_available(self) -> bool:
-    #     for order_detail in self.__order_detail:
-    #         item = order_detail.item
-    #         if isinstance(item, Cabana):
-    #             return not item.is_reseve  # ถ้าจองแล้ว = ไม่ว่าง
-    #         elif not isinstance(item, Ticket):
-    #             return item.remaining_amount >= order_detail.amount
-    #     return True
-
-    # def reserve(self):
-    #     for order_detail in self.__order_detail:
-    #         item = order_detail.item
-    #         if isinstance(item, Cabana):
-    #             item.is_reseve = True
-    #         elif not isinstance(self.__item, Ticket):
-    #             item.remaining_amount -= order_detail.amount
-    #     return "Done"
-    
-    # def cancel_reseve(self):
-    #     for order_detail in self.__order_detail:
-    #         item = order_detail.item
-    #         if isinstance(item, Cabana):
-    #             item.is_reseve = False
-    #         elif not isinstance(self.__item, Ticket):
-    #             item.remaining_amount += order_detail.amount
-    #     return "Done"
 
 class OrderDetail:
     def __init__(self, item):
@@ -151,9 +137,7 @@ class OrderDetail:
     def total_price(self):
         return self.__total_price
     
-    # def __str__(self):
-    #     return f"{self.item} x {self.__amount} = {self.total_price} THB"
-    
+
     def __add__(self, amount = 1):
         if 0 < amount:
             self.__amount += amount

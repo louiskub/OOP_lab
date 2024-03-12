@@ -13,11 +13,11 @@ class Ticket:
         return self.__price
             
     def name(self):
-        return self.__type + " Ticket"
+        return str(f"{self.__type} Ticket")
     
     def to_dict(self):
         return {
-            "name": self.name(),
+            "name": "ticket",
             "type": self.__type,
             "amount_per_ticket": self.__amount_per_ticket,
             "price": self.__price
@@ -33,7 +33,7 @@ class Cabana:
             if self.__size == size:
                 self.__price = price
         self.__is_reserve = False
-
+    
     @property
     def id(self):
         return self.__id
@@ -65,16 +65,21 @@ class Cabana:
     
     def to_dict(self):
         return {
-            "name": self.name(),
+            "name": "cabana",
             "id": self.__id,
             "size": self.__size,
             "zone": self.__zone,
             "price": self.__price,
             "is_reserve": self.__is_reserve
         }
+    def to_pdf(self):
+        return {
+            "name": self.name(),
+            "price": self.__price
+        }
     
 class Locker:
-    def __init__(self, size, remaining_amount=80):
+    def __init__(self, size, remaining_amount):
         self.__size = size
         self.__remaining_amount = remaining_amount
         if size == 'M' :
@@ -105,14 +110,19 @@ class Locker:
     
     def to_dict(self):
         return {
-            "name": self.name(),
+            "name": "locker",
             "price": self.__price,
             "size": self.__size,
             "remaining_amount": self.__remaining_amount
         }
+    def to_pdf(self):
+        return {
+            "name": self.name(),
+            "price": self.__price
+        }
 
 class Towel:
-    def __init__(self, remaining_amount=100):
+    def __init__(self, remaining_amount = 1000):
         self.__remaining_amount = remaining_amount
         self.__price = 99
 
@@ -125,18 +135,23 @@ class Towel:
         return self.__remaining_amount
     
     def update_status(self, type, amount): # type A = Add , R = Remove item from order
-        if type == 'A' and 0 < amount <= self.__remaining_amount:
-            self.__remaining_amount -= amount
+        if type == 'A' and 0 < amount <= self.remaining_amount:
+            self.remaining_amount -= amount
         elif type == 'R' and 0 < amount:
-            self.__remaining_amount += amount
+            self.remaining_amount += amount
 
     def name(self):
         return "Towel"
     
     def to_dict(self):
         return {
-            "name": self.name(),
+            "name": "towel",
             "price": self.__price,
             "remaining_amount": self.__remaining_amount
+        }
+    def to_pdf(self):
+        return {
+            "name": self.name(),
+            "price": self.__price
         }
     

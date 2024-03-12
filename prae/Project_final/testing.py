@@ -13,12 +13,6 @@ member_id = 100000
 services_date = None
 services_info = None
 
-tickets_val = None
-group_tickets_val = None
-lockers_val = None
-towels_val = None
-cabanas_val = None
-
 API_ENDPOINT_LOGIN = "http://127.0.0.1:8000/login"
 API_ENDPOINT_SUBSCRIPTION = "http://127.0.0.1:8000/subscription"
 API_ENDPOINT_SERVICES = f"http://127.0.0.1:8000/{member_id}/services"
@@ -29,6 +23,13 @@ API_ENDPOINT_ADD_ITEM = f"http://127.0.0.1:8000//{member_id}/services/{services_
 root = ttk.Window(themename = 'flatly')
 root.title("Scroll Frame")
 root.geometry('1920x1080')
+
+tickets_val = [IntVar() for i in range(4)]
+group_tickets_val = [IntVar() for i in range(4)]
+lockers_val = [IntVar() for i in range(2)]
+towels_val = IntVar()
+cabanas_val = IntVar()
+
 
 # Create a ScrolledFrame for pictures
 services_frame = ScrolledFrame(root, autohide = True)
@@ -66,19 +67,12 @@ def get_services_in_date():
         print(f"API request failed with status code: {response.status_code}")
         #print(response.json())
 
-
 def update_order(res):
     try:
-        global tickets_val
-        global group_tickets_val
-        global lockers_val
-        global towels_val
-        global cabanas_val
-
-        detail = res["order_detail"]
-        print(detail)
+        #print(detail)
         for detail in res["order_detail"]:
             items = detail["item"]
+            print(items)
             if items["name"] == "towel":
                 towels_val.set(detail["amount"])
 
@@ -86,24 +80,39 @@ def update_order(res):
                 cabanas_val.set(detail["amount"])
 
             elif items["name"] == "locker":
+                #print("hello", end=" ")
                 for i in range(len(lockers)):
                     if lockers[i]["size"] == items["size"]:
+                        print("hello", end=" ")
                         lockers_val[i].set(detail["amount"])
                         break
+
             elif items["name"] == "ticket":
                 if items["amount_per_ticket"] == 1:
                     for i in range(len(tickets)):
-                        print(tickets_val[i].get())
+                        #print(tickets_val[i].get())
                         if tickets[i]["type"] == items["type"]:
+                            print("hello", end=" ")
                             tickets_val[i].set(detail["amount"] )
                             break 
-                        
                 else :
                     for i in range(len(group_tickets)):
                         if group_tickets[i]["type"] == items["type"]:
+                            print("hello", end=" ")
                             group_tickets_val[i].set(detail["amount"])
                             break     
-            print("OK")
+        print("OK")
+        for i in tickets_val:
+            print(i.get(), end=" ")
+        print("")
+        for i in group_tickets_val:
+            print(i.get(), end=" ")
+        print("")
+        for i in lockers_val:
+            print(i.get(), end=" ")
+        print("")
+        print(towels_val.get())
+        print(cabanas_val.get())
     except :
         print(res)
 
@@ -162,8 +171,11 @@ def add_item(item):
     API_ENDPOINT_SERVICES_DATE  = f"http://127.0.0.1:8000/{member_id}/services/{services_date}"
 
     response = requests.post(API_ENDPOINT_SERVICES_DATE, data=json.dumps(item))
-    res = response.json()
-    update_order(res)
+    try : 
+        res = response.json()
+        update_order(res)
+    except:
+        print(res)
     
 def reduce_item(item):
     global member_id
@@ -214,7 +226,7 @@ def create_service():
         } 
         for zone in cabana.values() for item in zone
     ]
-    print(tickets, group_tickets, lockers, sep="\n\n\n")
+    #print(tickets, group_tickets, lockers, sep="\n\n\n")
     #print(cabanas)
 
 ### Select date ###
@@ -242,18 +254,7 @@ services_background = [
 
 def show_services_in_date():
     # Lists to store buttons and labels
-    global tickets_val
-    global group_tickets_val
-    global lockers_val
-    global towels_val
-    global cabanas_val
     
-    tickets_val = [IntVar() for i in range(len(tickets))]
-    group_tickets_val = [IntVar() for i in range(len(group_tickets))]
-    lockers_val = [IntVar() for i in range(len(lockers))]
-    towels_val = IntVar()
-    cabanas_val = IntVar()
-
     for i in range(len(services_background)):
         # Replace this with the path to your image file
         image = Image.open(services_background[i])
@@ -312,18 +313,6 @@ def show_services_in_date():
                 amount1.place(in_ = label, x = 865, y = 270 + j*70, anchor = CENTER)
             
         label.image = photo 
-        #root.after(10000, show_services_in_date)
-        # def coupon_use(member_id, date):
-        #     promocode = PromotioncodeEntry.get()
-        #     API_ENDPOINT = f"http://127.0.0.1:8000/%7Bmember_id%7D/services/%7Bdate%7D"
-        #     response = requests.put(API_ENDPOINT, json = {"code": promocode})
-
-        #     if response.status_code == 200:
-        #         data = response.json()  # แก้ไขตรงนี้
-        #         print("Response Data:", data)
-        #     else:
-        #         print("Error:", response.text)
 
 
 root.mainloop()
-

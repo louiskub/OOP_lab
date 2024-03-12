@@ -43,7 +43,7 @@ def download(member_id, booking_id):
         
         req.raise_for_status()
         with open(save_path, "wb") as file:
-            for chunk in req.iter_booking(chunk_size=8192):
+            for chunk in req.iter_content(chunk_size=8192):
                 file.write(chunk)
 
 def main():

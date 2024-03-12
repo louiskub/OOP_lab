@@ -83,34 +83,17 @@ class Stock:
     
     def create_ticket():
         ticket_list = []
-        
-        # Solo Ticket
+        #Solo Ticket
         ticket_list.append(Ticket('Full Day', 1, 699))
-        ticket_list.append(Ticket('Senior', 1, 599)) # >= 60 y.o. and want to play slides
+        ticket_list.append(Ticket('Senior with Slides', 1, 599)) # >= 60 y.o. and want to play slides
         ticket_list.append(Ticket('Child', 1, 0))
-        ticket_list.append(Ticket('SPD', 1, 0)) # including pregnant and disabled 
-
+        ticket_list.append(Ticket('Senior / Pregnant / Disabled ', 1, 0)) # including pregnant and disabled 
         # Group Ticket
-        ticket_list.append(Ticket('Group for 4', 4, 2599))
-        ticket_list.append(Ticket('Group for 6', 6, 3779))
-        ticket_list.append(Ticket('Group for 8', 8, 4879))
-        ticket_list.append(Ticket('Group for 10', 10, 5999))
+        ticket_list.append(Ticket('Group package for 4 people', 4, 2599))
+        ticket_list.append(Ticket('Group package for 6 people', 6, 3779))
+        ticket_list.append(Ticket('Group package for 8 people', 8, 4879))
+        ticket_list.append(Ticket('Group package for 10 people', 10, 5999))
         return ticket_list
-
-    # def add_cabana(self, cabana):
-    #     if isinstance(cabana, Cabana):
-    #         self.__cabana_list.append(cabana)
-    #     else: return 'Error'  
-
-    # def add_locker(self, locker):
-    #     if isinstance(locker, Locker):
-    #         self.__locker_list.append(locker)
-    #     else: return 'Error'  
-
-    # def add_ticket(self, ticket):
-    #     if isinstance(ticket, Ticket):
-    #         self.__ticket_list.append(ticket)
-    #     else: return 'Error'
 
     def get_cabana_in_zone(self, cabana_zone):
         for zone in range (len(self.__cabana_list)):
@@ -124,7 +107,6 @@ class DailyStock(Stock):
     def __init__(self, date):
         Stock.__init__(self)
         self.__date = date
-        self.__booking_list = []
     
     @property
     def date(self):
@@ -143,13 +125,6 @@ class DailyStock(Stock):
             return item.remaining_amount >= amount
         return True
     
-    # def get_cabana_in_zone(self, cabana_zone):
-    #     for zone in range (len(self.cabana_list)):
-    #         for cabana in self.cabana_list[zone]:
-    #             if cabana_zone == cabana.zone:
-    #                 return [cabana.to_dict() for cabana in self.cabana_list[zone]]
-    #             zone += 1
-    #     return None
     def get_cabana_in_zone(self, cabana_zone):
         print("ok")
         for zone in range (len(self.cabana_list)):

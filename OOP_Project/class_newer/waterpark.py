@@ -137,17 +137,21 @@ class WaterPark:
         self.add_member(Member(name, email, phone_number, birthday, password))
         return "Membership registration completed."
     
-    # All Services
-    def get_all_services(self):
-        return self.get_services_in_stock(self.__stock)
+    # # All Services
+    # def get_all_services(self):
+    #     return self.get_services_in_stock(self.__stock)
     
-    def get_services_in_date(self, date):
+    def get_services_in_date(self, member_id, date):
         selected_date = self.format_str_to_date(date)
+        member = self.search_member_from_id(member_id)
         if selected_date == None:
             return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
         daily_stock = self.search_daily_stock_from_date(selected_date)
         if daily_stock == None:
             return "Not available date. Please select a new date."
+        if member == None:
+            return "Member not found."
+        member.order = None
         return self.get_services_in_stock(daily_stock)
     
     def get_services_in_stock(self, stock):
@@ -211,7 +215,11 @@ class WaterPark:
                 return "The purchase amount is not enough."
         order.promotion = coupon
         order.cal_total()
-        return "Coupon successfully used!" 
+        return {
+            "status": "Coupon successfully used!",
+            "total": order.total,
+            "discount": order.cal_discount() 
+        }
     
     # Show member info and order detail.
     def show_confirm(self, member_id: int):
@@ -236,7 +244,7 @@ class WaterPark:
         return {
                 "member" : member.to_dict(),
                 "booking": member.booking_temp.to_dict()
-            }
+        }
         
     # Show booking id and info that must be filled in for payment.
     def show_payment(self, member_id: int, payment_method: str):

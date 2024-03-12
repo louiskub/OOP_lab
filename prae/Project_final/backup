@@ -326,4 +326,3 @@ def show_services_in_date():
 
 
 root.mainloop()
-
