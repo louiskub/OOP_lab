@@ -37,19 +37,19 @@ import re
 
 class Member:
 
-    __id = 100000
+    __ID = 100000
 
     def __init__(self, name, email, phone_no: str, birthday, password):
         self.__name = name
         self.__email = email
-        self.__id = Member.__id
+        self.__id = Member.__ID
         self.__birthday = birthday
         self.__password = password
         self.__phone_no = phone_no
         self.__order = None
         self.__booking_temp = None
         self.__booking_list = []
-        Member.__id += 1
+        Member.__ID += 1
 
     @property
     def id(self):

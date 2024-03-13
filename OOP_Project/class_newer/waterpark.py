@@ -141,14 +141,14 @@ class WaterPark:
     # def get_all_services(self):
     #     return self.get_services_in_stock(self.__stock)
     
-    def get_services_in_date(self, member_id, date):
-        selected_date = self.format_str_to_date(date)
+    def get_services_in_date(self, member_id, vist_date):
+        selected_date = self.format_str_to_date(vist_date)
         member = self.search_member_from_id(member_id)
         if selected_date == None:
             return "Invalid date format. Please use ISO format (YYYY-MM-DD)."
         daily_stock = self.search_daily_stock_from_date(selected_date)
-        if daily_stock == None:
-            return "Not available date. Please select a new date."
+        if daily_stock == None or selected_date <= date.today():
+            return "Please select the available date."
         if member == None:
             return "Member not found."
         member.order = None

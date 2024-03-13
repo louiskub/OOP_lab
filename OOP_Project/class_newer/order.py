@@ -90,13 +90,31 @@ class Order:
     # Reduce item from order.
     def reduce_item(self, item) : # Press the reduce button
         for items in self.__order_detail:
-            if item == items.item:
+            if isinstance(item, Cabana) and isinstance(items.item, Cabana):
+                self.__order_detail.remove(items)
+                self.cal_total()
+                return {
+            "status": "Delete success.",
+            "total": self.total,
+            "discount": self.cal_discount()
+        }
+
+            elif item == items.item:
                 items - 1
                 if items.amount == 0:
                     self.__order_detail.remove(items)
                 self.cal_total()
-                return "Delete success."
-        return "Delete success."
+                return {
+            "status": "Delete success.",
+            "total": self.total,
+            "discount": self.cal_discount()
+        }
+        self.cal_total()
+        return {
+            "status": "Delete success.",
+            "total": self.total,
+            "discount": self.cal_discount()
+        }
 
     def order_amount(self, item):
         for items in self.__order_detail:
